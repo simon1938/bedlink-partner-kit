@@ -2,7 +2,7 @@
 
 Ce kit branche votre site sur BedLink : vos logements, leurs prix et leurs
 disponibilités arrivent dans votre base, et vos voyageurs réservent en direct,
-sans passer par Airbnb ou Booking. Il s'installe dans Claude Code et fait le
+sans passer par Airbnb ou Booking. Il s'installe dans Claude Code ou Cursor et fait le
 travail à votre place, proprement et sans exposer vos secrets.
 
 Pensé pour une stack **Next.js (App Router) + Postgres / Neon + Vercel**, avec
@@ -17,6 +17,23 @@ Dans Claude Code, à la racine de votre projet :
 /plugin install bedlink-partner@bedlink-partner-kit
 /bedlink-partner:bedlink-integration
 ```
+
+## Avec Cursor
+
+Cursor lit le même format de skill (`SKILL.md`). Depuis la racine de votre
+projet, une fois pour toutes :
+
+```
+git clone https://github.com/simon1938/bedlink-partner-kit.git ../bedlink-partner-kit
+mkdir -p .cursor/skills
+cp -r ../bedlink-partner-kit/plugins/bedlink-partner/skills/bedlink-integration .cursor/skills/
+```
+
+Puis, dans le chat Agent de Cursor, tapez `/bedlink-integration` (ou
+demandez simplement « installe l'intégration BedLink »). Pour mettre le kit à
+jour plus tard : `git -C ../bedlink-partner-kit pull` et refaites la copie.
+Vous pouvez commiter `.cursor/skills/bedlink-integration` dans votre projet :
+il ne contient aucun secret.
 
 Le dépôt est privé : votre compte GitHub doit y avoir accès, et git doit
 pouvoir s'authentifier sans vous poser de question (`gh auth login` puis

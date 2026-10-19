@@ -7,6 +7,12 @@ allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/detect-stack.mjs *) Bash(no
 
 # Intégration BedLink
 
+> **Dossier de la skill.** Sous Claude Code, `${CLAUDE_SKILL_DIR}` est remplacé
+> automatiquement. Sous Cursor (ou tout autre outil), lis chaque
+> `${CLAUDE_SKILL_DIR}` comme le chemin du dossier qui contient ce fichier :
+> par défaut `.cursor/skills/bedlink-integration` à la racine du projet.
+> Lance les scripts avec ce chemin (ex. `node .cursor/skills/bedlink-integration/scripts/detect-stack.mjs`).
+
 Tu installes l'intégration de l'API partenaire BedLink dans le projet courant.
 BedLink est un PMS / channel manager : **BedLink est la source de vérité, ce
 site est un canal de vente**, comme Airbnb. Le site garde une copie (logements,
