@@ -27,6 +27,10 @@ faire vous-même : **coller votre clé BedLink dans `.env.local`**. Ne la collez
 pas dans la conversation. La clé se crée dans votre espace partenaire :
 https://app.bedlink.fr/fr/partenaire.
 
+Pour l'instant, c'est une clé de test (`blp_test_…`) : utilisez-la pour tout le
+développement, sur des comptes de test où vous pouvez réserver autant que vous
+voulez. Une clé de production vous sera remise au passage en réel.
+
 ## Ce que la skill fait
 
 1. Détecte votre stack (version de Next, ORM, pilote Postgres, `vercel.ts`
