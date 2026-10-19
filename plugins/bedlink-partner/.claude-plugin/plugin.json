@@ -1,0 +1,9 @@
+{
+  "name": "bedlink-partner",
+  "description": "Intégration de l'API partenaire BedLink dans un projet Next.js + Postgres sur Vercel : variables sûres, tables, client typé, webhook signé, cron, réservation et paiement, vérification.",
+  "version": "0.1.0",
+  "author": { "name": "BedLink", "email": "contact@bedlink.fr", "url": "https://bedlink.fr" },
+  "homepage": "https://app.bedlink.fr/fr/partner-api/docs",
+  "license": "UNLICENSED",
+  "keywords": ["bedlink", "pms", "channel-manager", "nextjs", "neon", "vercel", "webhooks"]
+}

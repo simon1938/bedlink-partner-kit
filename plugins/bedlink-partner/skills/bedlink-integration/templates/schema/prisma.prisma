@@ -1,0 +1,135 @@
+// BedLink integration tables for Prisma (Postgres). Append to schema.prisma, then:
+//   npx prisma migrate dev --name bedlink_integration
+// Names and columns are identical to schema/bedlink.sql: the store uses SQL
+// through $queryRawUnsafe, so the @@map / @map names matter, the model names do not.
+
+model BedlinkProperty {
+  bedlinkPropertyId  String    @id @map("bedlink_property_id") @db.Uuid
+  listingId          String?   @unique @map("listing_id")
+  name               String
+  currency           String
+  timezone           String    @default("Europe/Paris")
+  maxGuests          Int?      @map("max_guests")
+  checkInFrom        String?   @map("check_in_from")
+  checkInUntil       String?   @map("check_in_until")
+  checkOutUntil      String?   @map("check_out_until")
+  cancellationPolicy Json?     @map("cancellation_policy")
+  environment        String
+  status             String    @default("active")
+  connectedAt        DateTime  @default(now()) @map("connected_at") @db.Timestamptz
+  disconnectedAt     DateTime? @map("disconnected_at") @db.Timestamptz
+  calendarUntil      DateTime? @map("calendar_until") @db.Date
+  lastFullSyncAt     DateTime? @map("last_full_sync_at") @db.Timestamptz
+  updatedAt          DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+  days               BedlinkCalendarDay[]
+
+  @@map("bedlink_properties")
+}
+
+model BedlinkCalendarDay {
+  bedlinkPropertyId String          @map("bedlink_property_id") @db.Uuid
+  date              DateTime        @db.Date
+  priceCents        Int?            @map("price_cents")
+  available         Boolean
+  minNights         Int             @default(1) @map("min_nights")
+  minNightsThrough  Int?            @map("min_nights_through")
+  maxNights         Int?            @map("max_nights")
+  arrivalAllowed    Boolean         @default(true) @map("arrival_allowed")
+  departureAllowed  Boolean         @default(true) @map("departure_allowed")
+  syncedAt          DateTime        @default(now()) @map("synced_at") @db.Timestamptz
+  property          BedlinkProperty @relation(fields: [bedlinkPropertyId], references: [bedlinkPropertyId], onDelete: Cascade)
+
+  @@id([bedlinkPropertyId, date])
+  @@index([date, available], map: "bedlink_calendar_days_search")
+  @@map("bedlink_calendar_days")
+}
+
+model BedlinkSyncState {
+  id                String    @id
+  changesCursor     String?   @map("changes_cursor")
+  reservationsSince DateTime? @map("reservations_since") @db.Timestamptz
+  lastFullSyncAt    DateTime? @map("last_full_sync_at") @db.Timestamptz
+  lastPollAt        DateTime? @map("last_poll_at") @db.Timestamptz
+  lockedUntil       DateTime? @map("locked_until") @db.Timestamptz
+  lastError         String?   @map("last_error")
+  updatedAt         DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("bedlink_sync_state")
+}
+
+model BedlinkWebhookEvent {
+  eventId     String    @id @map("event_id")
+  type        String
+  createdAt   DateTime? @map("created_at") @db.Timestamptz
+  receivedAt  DateTime  @default(now()) @map("received_at") @db.Timestamptz
+  processedAt DateTime? @map("processed_at") @db.Timestamptz
+  error       String?
+  payload     Json
+
+  @@index([receivedAt], map: "bedlink_webhook_events_received")
+  @@map("bedlink_webhook_events")
+}
+
+model BedlinkCheckout {
+  externalId           String    @id @map("external_id")
+  bedlinkPropertyId    String    @map("bedlink_property_id") @db.Uuid
+  checkIn              DateTime  @map("check_in") @db.Date
+  checkOut             DateTime  @map("check_out") @db.Date
+  adults               Int
+  children             Int       @default(0)
+  quoteId              String?   @map("quote_id") @db.Uuid
+  quoteExpiresAt       DateTime? @map("quote_expires_at") @db.Timestamptz
+  totalCents           Int?      @map("total_cents")
+  currency             String?
+  holdId               String?   @map("hold_id") @db.Uuid
+  holdExpiresAt        DateTime? @map("hold_expires_at") @db.Timestamptz
+  paymentSessionId     String?   @map("payment_session_id")
+  status               String
+  bedlinkReservationId String?   @map("bedlink_reservation_id") @db.Uuid
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("bedlink_checkouts")
+}
+
+model BedlinkReservation {
+  bedlinkReservationId String    @id @map("bedlink_reservation_id") @db.Uuid
+  externalId           String    @unique @map("external_id")
+  bedlinkPropertyId    String    @map("bedlink_property_id") @db.Uuid
+  status               String
+  checkIn              DateTime  @map("check_in") @db.Date
+  checkOut             DateTime  @map("check_out") @db.Date
+  adults               Int
+  children             Int       @default(0)
+  totalCents           Int       @map("total_cents")
+  currency             String
+  guestName            String?   @map("guest_name")
+  guestEmail           String?   @map("guest_email")
+  guestPhone           String?   @map("guest_phone")
+  notes                String?
+  paymentStatus        String?   @map("payment_status")
+  hostAmountCents      Int?      @map("host_amount_cents")
+  partnerFeeCents      Int?      @map("partner_fee_cents")
+  paidAt               DateTime? @map("paid_at") @db.Timestamptz
+  cancelledBy          String?   @map("cancelled_by")
+  bedlinkCreatedAt     DateTime? @map("bedlink_created_at") @db.Timestamptz
+  bedlinkUpdatedAt     DateTime? @map("bedlink_updated_at") @db.Timestamptz
+  syncedAt             DateTime  @default(now()) @map("synced_at") @db.Timestamptz
+
+  @@index([bedlinkPropertyId, checkIn], map: "bedlink_reservations_property")
+  @@map("bedlink_reservations")
+}
+
+model BedlinkMessage {
+  bedlinkMessageId     String   @id @map("bedlink_message_id") @db.Uuid
+  bedlinkReservationId String   @map("bedlink_reservation_id") @db.Uuid
+  externalId           String?  @unique @map("external_id")
+  sender               String
+  source               String
+  body                 String
+  createdAt            DateTime @map("created_at") @db.Timestamptz
+  syncedAt             DateTime @default(now()) @map("synced_at") @db.Timestamptz
+
+  @@index([bedlinkReservationId, createdAt], map: "bedlink_messages_thread")
+  @@map("bedlink_messages")
+}
