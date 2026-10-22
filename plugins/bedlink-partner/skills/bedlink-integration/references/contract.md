@@ -4,10 +4,15 @@ Base : `https://app.bedlink.fr/api/partner/v1`. Documentation interactive :
 `https://app.bedlink.fr/fr/partner-api/docs`, OpenAPI :
 `https://app.bedlink.fr/api/partner/openapi`.
 
-- **[DISPO]** : en ligne dans la sandbox aujourd'hui.
-- **[PRÉVU]** : décidé, pas encore ouvert. Le code du kit le prévoit derrière
-  `BEDLINK_FEATURES` (nom du drapeau entre parenthèses). Un endpoint pas encore
-  ouvert répond `404 {"error":{"code":"not_found","message":"Endpoint not found."}}`.
+- **[DISPO]** : en ligne dans la sandbox. Les blocs suivis d'un drapeau entre
+  parenthèses s'ouvrent partenaire par partenaire (`BEDLINK_FEATURES` côté kit) ;
+  tant qu'un bloc n'est pas ouvert pour vous, il répond
+  `404 {"error":{"code":"not_found","message":"Endpoint not found."}}`.
+- **Logement Atypique** : tout est ouvert en sandbox depuis le 19/10/2026
+  (`calendar_366`, `changes`, `webhooks`, `reservations_list`, `messages`,
+  `payments`), l'envoi des webhooks depuis le 22/10/2026.
+- **Pas encore ouvert** : la clé de production `blp_live_` et le paiement réel.
+  En sandbox, le paiement est simulé (aucune carte, aucun appel Stripe).
 
 Principe : **BedLink est la source de vérité, vous êtes un canal de vente**.
 Vous gardez une copie pour afficher et chercher ; toute réservation passe par
@@ -30,7 +35,7 @@ Codes d'erreur : `invalid_request` 400, `guest_limit` 400, `invalid_token` 401,
 `access_disabled` 403, `sandbox_only` 403, `not_found` 404, `dates_unavailable`
 409, `quote_expired` 409, `hold_expired` 409, `hold_used` 409,
 `reference_conflict` 409, `channel_not_configured` 409, `rate_limit` 429,
-`service_unavailable` 503. [PRÉVU] `cursor_expired` 410, `payment_required`
+`service_unavailable` 503. [DISPO] `cursor_expired` 410, `payment_required`
 409, `payment_unavailable` 409.
 
 ## Logements
@@ -46,7 +51,7 @@ Codes d'erreur : `invalid_request` 400, `guest_limit` 400, `invalid_token` 401,
 }
 ```
 
-[PRÉVU] `checkInFrom` (`"16:00"`), `checkInUntil` (ou null), `checkOutUntil`
+[DISPO] `checkInFrom` (`"16:00"`), `checkInUntil` (ou null), `checkOutUntil`
 (`"10:00"`), `cancellationPolicy`, `securityDepositCents`, `status`,
 `connectedAt`, `updatedAt`.
 
@@ -66,8 +71,7 @@ lui-même : vous affichez, vous n'exécutez rien. Peut valoir `null`.
 
 `GET /properties/{id}/calendar?from=YYYY-MM-DD&to=YYYY-MM-DD` [DISPO]
 
-Bornes incluses. **Aujourd'hui 90 jours d'écart maximum (91 dates)** ; [PRÉVU]
-365 jours (366 dates) (`calendar_366`).
+Bornes incluses. **365 jours d'écart maximum (366 dates)** avec `calendar_366`, 90 jours sinon.
 
 ```json
 { "propertyId": "uuid", "channel": "…", "currency": "EUR", "from": "…", "to": "…",
@@ -82,7 +86,7 @@ Bornes incluses. **Aujourd'hui 90 jours d'écart maximum (91 dates)** ; [PRÉVU]
 - Un jour « disponible » n'est pas une garantie : seul le devis fait foi.
 - Aucune date de modification par jour : datez votre copie vous-même.
 
-## Fil des changements [PRÉVU] (`changes`)
+## Fil des changements [DISPO] (`changes`)
 
 `GET /changes?cursor=<opaque>&limit=500` : tous vos logements en un appel.
 
@@ -136,7 +140,7 @@ C'est le chemin sandbox, sans paiement en ligne.
 `status` : `confirmed` | `cancelled` | `completed`. Vous ne voyez **que vos
 réservations**, jamais celles des autres canaux.
 
-[PRÉVU] champs `createdAt`, `updatedAt`, `cancelledBy` (`host` | `partner`),
+[DISPO] champs `createdAt`, `updatedAt`, `cancelledBy` (`host` | `partner`),
 `payment` :
 
 ```json
@@ -144,10 +148,10 @@ réservations**, jamais celles des autres canaux.
   "partnerFeeCents": 0, "currency": "EUR", "paidAt": "…", "refundedCents": 0 }
 ```
 
-[PRÉVU] `GET /reservations?since=<ISO>&cursor=&limit=100` (`reservations_list`) :
+[DISPO] `GET /reservations?since=<ISO>&cursor=&limit=100` (`reservations_list`) :
 vos réservations modifiées depuis `since`, `{ reservations, nextCursor, hasMore }`.
 
-## Messages [PRÉVU] (`messages`)
+## Messages [DISPO] (`messages`)
 
 Un seul fil par réservation, le même chez BedLink et chez vous.
 
@@ -166,7 +170,7 @@ Un seul fil par réservation, le même chez BedLink et chez vous.
 aussi par le webhook `message.created`). Ne renvoyez jamais un message
 `source: bedlink` : ce serait une boucle.
 
-## Paiement [PRÉVU] (`payments`)
+## Paiement [DISPO] (`payments`) — simulé en sandbox, réel pas encore ouvert
 
 Débit unique sur le compte Stripe de l'hôte, via une page de paiement BedLink
 intégrée chez vous (« Powered by BedLink »), repli en redirection. Votre site
@@ -198,6 +202,6 @@ ne voit jamais la carte et ne charge pas Stripe.js.
 
 `GET /payment-sessions/{id}` → `{ id, status: "open" | "processing" | "succeeded" | "failed" | "expired", reservationId, … }`.
 
-## Webhooks [PRÉVU] (`webhooks`)
+## Webhooks [DISPO] (`webhooks`)
 
 Voir `webhooks.md`.

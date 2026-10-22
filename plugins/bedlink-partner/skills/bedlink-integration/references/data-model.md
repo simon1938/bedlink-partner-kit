@@ -5,7 +5,8 @@ Sept tables, toutes préfixées `bedlink_`, identiques dans les trois gabarits
 (`lib/bedlink/store.ts`) les lit et les écrit en SQL paramétré.
 
 « Origine » dit qui remplit le champ : un endpoint BedLink, un webhook, ou
-vous. [PRÉVU] = champ que BedLink ne renvoie pas encore (reste `null`).
+vous. Tous les champs sont renvoyés par BedLink depuis le 19/10/2026 (ceux du
+paiement restent `null` tant qu'aucun paiement n'a eu lieu).
 
 ## `bedlink_properties` : logements reliés
 
@@ -17,10 +18,10 @@ vous. [PRÉVU] = champ que BedLink ne renvoie pas encore (reste `null`).
 | `currency` | text | `Property.currency` | affichage des prix |
 | `timezone` | text | `Property.timezone` | « aujourd'hui » du logement |
 | `max_guests` | int null | `Property.maxGuests` | filtre de recherche |
-| `check_in_from` | text null | `Property.checkInFrom` [PRÉVU] | affichage |
-| `check_in_until` | text null | `Property.checkInUntil` [PRÉVU] | affichage |
-| `check_out_until` | text null | `Property.checkOutUntil` [PRÉVU] | affichage |
-| `cancellation_policy` | jsonb null | `Property.cancellationPolicy` [PRÉVU] | affichage avant paiement |
+| `check_in_from` | text null | `Property.checkInFrom` | affichage |
+| `check_in_until` | text null | `Property.checkInUntil` | affichage |
+| `check_out_until` | text null | `Property.checkOutUntil` | affichage |
+| `cancellation_policy` | jsonb null | `Property.cancellationPolicy` | affichage avant paiement |
 | `environment` | text | `Property.environment` | ne jamais mélanger sandbox et production |
 | `status` | text | `active` / `disconnected` (liste, `property.*`) | retirer de la vente |
 | `connected_at` | timestamptz | 1re vue ou `property.connected` | suivi |
@@ -54,8 +55,8 @@ respecté) ; le devis confirme ensuite.
 
 | Champ | Type | Origine | Usage |
 |---|---|---|---|
-| `changes_cursor` | text null | `nextCursor` de `/changes` [PRÉVU] | reprendre où on s'est arrêté |
-| `reservations_since` | timestamptz null | max `Reservation.updatedAt` vu [PRÉVU] | rattrapage des réservations |
+| `changes_cursor` | text null | `nextCursor` de `/changes` | reprendre où on s'est arrêté |
+| `reservations_since` | timestamptz null | max `Reservation.updatedAt` vu | rattrapage des réservations |
 | `last_full_sync_at` | timestamptz null | vous | |
 | `last_poll_at` | timestamptz null | vous | surveiller que le cron tourne |
 | `locked_until` | timestamptz null | vous | une seule synchro à la fois |
@@ -84,7 +85,7 @@ respecté) ; le devis confirme ensuite.
 | `quote_id`, `quote_expires_at` | uuid, timestamptz | `Quote` | |
 | `total_cents`, `currency` | int, text | `Quote` | montant montré au voyageur |
 | `hold_id`, `hold_expires_at` | uuid, timestamptz | `Hold` | |
-| `payment_session_id` | text null | `PaymentSession.id` [PRÉVU] | |
+| `payment_session_id` | text null | `PaymentSession.id` | |
 | `status` | text | vous : `quoted` → `held` → `paying` → `confirmed` / `failed` / `expired` / `released` | |
 | `bedlink_reservation_id` | uuid null | `Reservation.id` | |
 
@@ -101,15 +102,15 @@ respecté) ; le devis confirme ensuite.
 | `total_cents`, `currency` | int, text | | |
 | `guest_name`, `guest_email`, `guest_phone` | text | `guest` (vient de vous à la création) | |
 | `notes` | text null | `notes` | |
-| `payment_status` | text null | `payment.status` [PRÉVU] | |
-| `host_amount_cents` | int null | `payment.hostAmountCents` [PRÉVU] | |
-| `partner_fee_cents` | int null | `payment.partnerFeeCents` [PRÉVU] | votre facture mensuelle à l'hôte |
-| `paid_at` | timestamptz null | `payment.paidAt` [PRÉVU] | |
-| `cancelled_by` | text null | `cancelledBy` [PRÉVU] | |
-| `bedlink_created_at`, `bedlink_updated_at` | timestamptz null | `createdAt`, `updatedAt` [PRÉVU] | rattrapage |
+| `payment_status` | text null | `payment.status` | |
+| `host_amount_cents` | int null | `payment.hostAmountCents` | |
+| `partner_fee_cents` | int null | `payment.partnerFeeCents` | votre facture mensuelle à l'hôte |
+| `paid_at` | timestamptz null | `payment.paidAt` | |
+| `cancelled_by` | text null | `cancelledBy` | |
+| `bedlink_created_at`, `bedlink_updated_at` | timestamptz null | `createdAt`, `updatedAt` | rattrapage |
 | `synced_at` | timestamptz | vous | |
 
-## `bedlink_messages` : le fil [PRÉVU]
+## `bedlink_messages` : le fil
 
 | Champ | Type | Origine | Usage |
 |---|---|---|---|

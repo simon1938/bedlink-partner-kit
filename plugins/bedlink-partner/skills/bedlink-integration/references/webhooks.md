@@ -1,8 +1,14 @@
-# Webhooks BedLink [PRÉVU]
+# Webhooks BedLink [DISPO]
 
 Un webhook dit « il y a du nouveau ». Il **complète** le fil des changements
 et le cron, il ne les remplace pas : un webhook peut se perdre, le cron
 rattrape toujours.
+
+**Délai** : ouvert depuis le 22/10/2026. Un événement part dans la seconde
+qui suit le geste (votre appel, une réservation Airbnb/Booking/Expedia, un
+changement de calendrier dans BedLink). Ce qui est fait ailleurs dans BedLink
+(annulation ou réponse de l'hôte) part en moins d'une minute. Un envoi raté
+est relancé (voir plus bas).
 
 ## Réglage
 
@@ -11,8 +17,8 @@ et le secret `whsec_…`, affiché une fois. Rangez-le dans
 `BEDLINK_WEBHOOK_SECRET` (serveur uniquement). Pendant une rotation, deux
 secrets sont valables 24 h : `BEDLINK_WEBHOOK_SECRET="whsec_nouveau,whsec_ancien"`.
 
-En attendant que BedLink envoie des webhooks, la skill génère un secret
-**local** (`whsec_local_…`) : il sert au test de votre route par `check.mjs`.
+La skill génère aussi un secret **local** (`whsec_local_…`) : il sert au test
+de votre route par `check.mjs`, sans passer par BedLink.
 
 ## Requête reçue
 
