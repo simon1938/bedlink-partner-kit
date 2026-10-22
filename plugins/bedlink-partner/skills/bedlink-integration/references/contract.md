@@ -11,6 +11,9 @@ Base : `https://app.bedlink.fr/api/partner/v1`. Documentation interactive :
 - **Logement Atypique** : tout est ouvert en sandbox depuis le 19/10/2026
   (`calendar_366`, `changes`, `webhooks`, `reservations_list`, `messages`,
   `payments`), l'envoi des webhooks depuis le 22/10/2026.
+- **Modification des réservations** (`reservations_modify`) : ouverte à
+  Logement Atypique en sandbox avec la mise en ligne BedLink du 22/10/2026
+  (à ajouter à `BEDLINK_FEATURES` quand BedLink le confirme).
 - **Pas encore ouvert** : la clé de production `blp_live_` et le paiement réel.
   En sandbox, le paiement est simulé (aucune carte, aucun appel Stripe).
 
@@ -36,7 +39,8 @@ Codes d'erreur : `invalid_request` 400, `guest_limit` 400, `invalid_token` 401,
 409, `quote_expired` 409, `hold_expired` 409, `hold_used` 409,
 `reference_conflict` 409, `channel_not_configured` 409, `rate_limit` 429,
 `service_unavailable` 503. [DISPO] `cursor_expired` 410, `payment_required`
-409, `payment_unavailable` 409.
+409, `payment_unavailable` 409, `reservation_cancelled` 409,
+`reservation_started` 409, `price_change_requires_payment` 409.
 
 ## Logements
 
@@ -147,6 +151,22 @@ réservations**, jamais celles des autres canaux.
 "payment": { "status": "paid", "amountCents": 30000, "hostAmountCents": 30000,
   "partnerFeeCents": 0, "currency": "EUR", "paidAt": "…", "refundedCents": 0 }
 ```
+
+`PATCH /reservations/{id}` [DISPO] (`reservations_modify`) : le voyageur change
+ses dates ou le nombre de voyageurs. Corps : seulement ce qui change,
+`{ checkIn?, checkOut?, adults?, children? }` ; jamais de prix. → `200 Reservation`.
+
+- Seulement **vos** réservations ; toute autre répond `404`.
+- BedLink revérifie le séjour comme une création (dispo sans compter la
+  réservation elle-même, règles de séjour, capacité) et **recalcule
+  `totalCents`** au tarif du jour quand les dates changent. Voyageurs seuls :
+  prix inchangé. Affichez le nouveau total au voyageur.
+- Renvoyer les valeurs actuelles = `200` sans effet (rejouable).
+- Refus : `409 dates_unavailable`, `409 reservation_cancelled`,
+  `409 reservation_started` (arrivée passée : l'hôte s'en charge),
+  `409 price_change_requires_payment` (payée en ligne et le montant changerait :
+  rien n'est débité ni remboursé, voir l'hôte), `400 guest_limit`.
+- Suivi : webhooks `reservation.modified` et `availability.changed`.
 
 [DISPO] `GET /reservations?since=<ISO>&cursor=&limit=100` (`reservations_list`) :
 vos réservations modifiées depuis `since`, `{ reservations, nextCursor, hasMore }`.

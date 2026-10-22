@@ -14,6 +14,7 @@ export const FEATURES = [
   "reservations_list", // GET /reservations?since=
   "messages", // POST/GET /reservations/{id}/messages
   "payments", // POST /payment-sessions + embedded payment page
+  "reservations_modify", // PATCH /reservations/{id}: change dates or guests
 ] as const;
 export type Feature = (typeof FEATURES)[number];
 

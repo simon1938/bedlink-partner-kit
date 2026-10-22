@@ -143,6 +143,23 @@ export async function startMock(state: MockState): Promise<{ url: string; server
       if (req.method === "DELETE") r.status = "cancelled";
       return send(200, r);
     }
+    if (req.method === "PATCH" && parts[0] === "reservations" && parts.length === 2 && state.features.has("reservations_modify")) {
+      const r = state.reservations.get(parts[1]);
+      if (!r) return error(404, "not_found", "Reservation not found.");
+      if (r.status === "cancelled") return error(409, "reservation_cancelled", "This reservation is cancelled and can no longer be modified.");
+      const next = { checkIn: body.checkIn ?? r.checkIn, checkOut: body.checkOut ?? r.checkOut, adults: body.adults ?? r.adults, children: body.children ?? r.children };
+      if (next.checkIn !== r.checkIn || next.checkOut !== r.checkOut) {
+        let total = 0;
+        for (let d = next.checkIn as string; d < (next.checkOut as string); d = addDays(d, 1)) {
+          const x = day(state, r.propertyId as string, d);
+          if (!x.available || !x.priceCents) return error(409, "dates_unavailable", "These dates are no longer available or do not meet the stay rules.");
+          total += x.priceCents;
+        }
+        r.totalCents = total;
+      }
+      Object.assign(r, next);
+      return send(200, r);
+    }
     if (req.method === "GET" && path === "/changes" && state.features.has("changes")) {
       const cursor = Number(url.searchParams.get("cursor")?.replace("c_", "") ?? NaN);
       const limit = Number(url.searchParams.get("limit") ?? 500);

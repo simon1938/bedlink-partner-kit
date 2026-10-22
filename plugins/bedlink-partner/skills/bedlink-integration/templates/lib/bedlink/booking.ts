@@ -24,6 +24,9 @@ export type CheckoutError =
   | "hold_expired"
   | "guest_limit"
   | "payment_unavailable"
+  | "reservation_cancelled"
+  | "reservation_started"
+  | "price_change_requires_payment"
   | "unknown_checkout";
 
 export class CheckoutFailed extends Error {
@@ -169,6 +172,21 @@ export function createBooking(store: BedlinkStore = defaultStore) {
         await bedlink.releaseHold(c.holdId).catch(() => undefined);
         await store.saveCheckout({ ...c, status: "released" });
       }
+    },
+
+    /**
+     * The traveller changes the dates (or guests) of a confirmed booking.
+     * BedLink recomputes the price: show the new totalCents to the traveller.
+     * A booking paid online keeps its amount: a change that would alter it is
+     * refused (price_change_requires_payment), ask the host.
+     */
+    async modifyReservation(
+      reservationId: string,
+      input: { checkIn?: string; checkOut?: string; adults?: number; children?: number },
+    ) {
+      const r = await bedlink.modifyReservation(reservationId, input).catch(translate);
+      await store.upsertReservation(r);
+      return r;
     },
 
     async cancelReservation(reservationId: string) {

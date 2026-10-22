@@ -149,6 +149,26 @@ describe("booking path (sandbox: payments off)", () => {
     await assert.rejects(lib.booking.startCheckout({ propertyId: p, checkIn: plus(40), checkOut: plus(41), adults: 2 }), (e: Error & { reason?: string }) => e.reason === "dates_unavailable");
   });
 
+  it("the traveller changes the dates: new total from BedLink, copy updated; flag off = clear error", async () => {
+    const p = state.properties[0].id;
+    const { externalId } = await lib.booking.startCheckout({ propertyId: p, checkIn: plus(60), checkOut: plus(62), adults: 2 });
+    await lib.booking.holdCheckout(externalId);
+    await lib.booking.payCheckout(externalId, { guest: { name: "M", email: "m@example.com" }, returnUrl: "https://example.com" });
+    const id = (await lib.booking.getCheckoutStatus(externalId)).reservation!.id;
+    await assert.rejects(lib.booking.modifyReservation(id, { checkOut: plus(63) }), /not available yet/);
+    process.env.BEDLINK_FEATURES = "reservations_modify";
+    state.features = new Set(["reservations_modify"]);
+    const r = await lib.booking.modifyReservation(id, { checkOut: plus(63) });
+    assert.equal(r.checkOut, plus(63));
+    assert.equal(r.totalCents, 3 * 14000);
+    const copy = await pg.query<{ check_out: string }>("select check_out::text from bedlink_reservations where bedlink_reservation_id = $1", [id]);
+    assert.equal(copy.rows[0].check_out, plus(63));
+    setDay(state, p, plus(63), { available: false });
+    await assert.rejects(lib.booking.modifyReservation(id, { checkOut: plus(64) }), (e: Error & { reason?: string }) => e.reason === "dates_unavailable");
+    state.features = new Set();
+    process.env.BEDLINK_FEATURES = "";
+  });
+
   it("payments flag on but endpoint not open: a clear error, nothing created", async () => {
     process.env.BEDLINK_FEATURES = "payments";
     const p = state.properties[0].id;

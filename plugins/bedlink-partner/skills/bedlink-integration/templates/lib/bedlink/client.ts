@@ -37,7 +37,7 @@ export class FeatureUnavailableError extends Error {
   }
 }
 
-type Options = { method?: "GET" | "POST" | "DELETE"; body?: unknown; feature?: Feature };
+type Options = { method?: "GET" | "POST" | "PATCH" | "DELETE"; body?: unknown; feature?: Feature };
 
 async function call<T>(path: string, opts: Options = {}): Promise<T> {
   if (opts.feature && !hasFeature(opts.feature)) throw new FeatureUnavailableError(opts.feature);
@@ -147,6 +147,21 @@ export const bedlink = {
     returnUrl: string;
     cancelUrl?: string;
   }) => call<PaymentSession>("/payment-sessions", { method: "POST", body: input, feature: "payments" }),
+
+  /**
+   * Change the dates or guests of YOUR reservation. Send only what changes;
+   * BedLink re-checks the stay and recomputes totalCents (never sent by you).
+   * Sending the current values again is a no-op (200).
+   */
+  modifyReservation: (
+    id: string,
+    input: { checkIn?: string; checkOut?: string; adults?: number; children?: number },
+  ) =>
+    call<Reservation>(`/reservations/${enc(id)}`, {
+      method: "PATCH",
+      body: input,
+      feature: "reservations_modify",
+    }),
 
   getPaymentSession: (id: string) =>
     call<PaymentSession>(`/payment-sessions/${enc(id)}`, { feature: "payments" }),
