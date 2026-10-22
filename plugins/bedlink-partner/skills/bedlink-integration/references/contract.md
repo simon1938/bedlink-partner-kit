@@ -222,6 +222,49 @@ ne voit jamais la carte et ne charge pas Stripe.js.
 
 `GET /payment-sessions/{id}` → `{ id, status: "open" | "processing" | "succeeded" | "failed" | "expired", reservationId, … }`.
 
+## Connexion des logements par l'hôte [À VENIR] (`connect`)
+
+Le bouton « Connecter mon BedLink » sur votre site. L'association entre vos
+annonces et ses logements BedLink se fait chez BedLink, sous les yeux de l'hôte.
+
+1. **Votre serveur** : `POST /connect-sessions`
+   ```json
+   { "host": { "ref": "votre-id-hote", "email": "hote@exemple.fr", "name": "Marie" },
+     "listings": [ { "id": "votre-id-annonce", "name": "Chalet des Dunes", "url": "https://…" } ],
+     "returnUrl": "https://logement-atypique.fr/bedlink/retour", "locale": "fr" }
+   ```
+   Réponse `201` : `{ "id": "cs_…", "url": "https://app.bedlink.fr/fr/connecter/cs_…", "status": "pending", "expiresAt": "…" }`.
+   Lien valable 30 minutes : redirigez l'hôte vers `url`.
+2. **Chez BedLink** : l'hôte se connecte ou crée son compte, choisit pour
+   chaque annonce le logement BedLink correspondant (ou « ne pas relier »), valide.
+   Un compte tout neuf doit d'abord ajouter son logement : il reviendra par votre bouton.
+3. **Retour** sur `returnUrl?session=cs_…&status=connected` (ou `cancelled`).
+   Lisez le résultat avec votre clé : `GET /connect-sessions/{id}` →
+   `{ "status": "completed", "connections": [ { "listingId": "…", "propertyId": "uuid" | null } ] }`.
+   Vous recevez aussi un webhook `property.connected` par logement, avec `listingId`.
+   `GET /properties` renvoie `listingId` sur chaque logement.
+4. **Import** de ce que vous avez déjà, juste après :
+   `POST /properties/{propertyId}/reservations/import`, 100 au plus par appel :
+   ```json
+   { "reservations": [ { "externalId": "LA-123", "checkIn": "2026-12-20", "checkOut": "2026-12-23",
+       "adults": 2, "children": 0, "guest": { "name": "…", "email": "…", "phone": "…" },
+       "totalCents": 42000, "currency": "EUR", "status": "confirmed" } ] }
+   ```
+   Chaque ligne répond `created`, `updated`, `cancelled`, `unchanged`, `skipped`
+   (séjour passé, ou annulée jamais importée) ou `error`, avec l'`id` BedLink.
+   Rejouer est sans risque (par `externalId`). Une réservation n'est **jamais**
+   refusée pour indisponibilité : si ses nuits sont déjà prises chez BedLink, elle
+   est créée avec `conflict: true` et l'hôte est alerté. Les nuits se ferment sur
+   Airbnb et Booking.
+   Puis les messages : `POST /reservations/{id}/messages` avec `sentAt` (jusqu'à
+   3 ans pour une réservation importée ; plus d'une heure = historique, sans
+   notifier l'hôte).
+5. **Déconnexion** : `DELETE /properties/{propertyId}/connection` chez vous, ou
+   par l'hôte dans BedLink → Plateformes. Webhook `property.disconnected`.
+
+Clé de test : seuls les comptes de test BedLink se relient. En production,
+l'accès d'un logement s'ouvre après validation par BedLink.
+
 ## Webhooks [DISPO] (`webhooks`)
 
 Voir `webhooks.md`.

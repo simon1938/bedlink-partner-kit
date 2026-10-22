@@ -55,8 +55,8 @@ Ensuite l'URL est désactivée. Ordre non garanti, livraison au moins une fois.
 
 | Type | `data` | Ce que fait le kit |
 |---|---|---|
-| `property.connected` | `{ propertyId }` | lit la fiche et 366 jours de calendrier |
-| `property.disconnected` | `{ propertyId }` | retire le logement de la vente, efface son calendrier local |
+| `property.connected` | `{ propertyId, listingId }` | lit la fiche et 366 jours de calendrier |
+| `property.disconnected` | `{ propertyId, listingId }` | retire le logement de la vente, efface son calendrier local |
 | `availability.changed` | `{ propertyId, from, to }` | **signal seul** : relit le calendrier sur la plage auprès de BedLink |
 | `reservation.confirmed` | `{ reservation }` | enregistre la réservation, clôt la tentative (`bedlink_checkouts`) |
 | `reservation.cancelled` | `{ reservation }` | met à jour le statut (annulée par l'hôte ou par vous) |
