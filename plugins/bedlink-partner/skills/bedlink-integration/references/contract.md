@@ -222,7 +222,7 @@ ne voit jamais la carte et ne charge pas Stripe.js.
 
 `GET /payment-sessions/{id}` → `{ id, status: "open" | "processing" | "succeeded" | "failed" | "expired", reservationId, … }`.
 
-## Connexion des logements par l'hôte [À VENIR] (`connect`)
+## Connexion des logements par l'hôte [DISPO] (`connect`)
 
 Le bouton « Connecter mon BedLink » sur votre site. L'association entre vos
 annonces et ses logements BedLink se fait chez BedLink, sous les yeux de l'hôte.
