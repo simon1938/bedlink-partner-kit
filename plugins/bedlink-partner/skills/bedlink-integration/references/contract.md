@@ -259,7 +259,15 @@ annonces et ses logements BedLink se fait chez BedLink, sous les yeux de l'hôte
    Puis les messages : `POST /reservations/{id}/messages` avec `sentAt` (jusqu'à
    3 ans pour une réservation importée ; plus d'une heure = historique, sans
    notifier l'hôte).
-5. **Déconnexion** : `DELETE /properties/{propertyId}/connection` chez vous, ou
+5. **Depuis BedLink** : dans BedLink → Plateformes, l'hôte clique « Connecter
+   Logement Atypique ». BedLink l'envoie sur
+   `https://logement-atypique.fr/bedlink/connecter?bedlink_return=<url BedLink>`
+   (page à créer chez vous). Vous l'identifiez (connexion à son compte chez vous
+   s'il ne l'est pas), puis vous faites exactement l'étape 1 avec
+   `returnUrl` = la valeur de `bedlink_return`, et vous le redirigez vers l'`url`
+   reçue. Il choisit ses logements chez BedLink et revient dans BedLink.
+   N'acceptez comme `bedlink_return` qu'une adresse `https://app.bedlink.fr/…`.
+6. **Déconnexion** : `DELETE /properties/{propertyId}/connection` chez vous, ou
    par l'hôte dans BedLink → Plateformes. Webhook `property.disconnected`.
 
 Clé de test : seuls les comptes de test BedLink se relient. En production,
