@@ -230,9 +230,16 @@ annonces et ses logements BedLink se fait chez BedLink, sous les yeux de l'hôte
 1. **Votre serveur** : `POST /connect-sessions`
    ```json
    { "host": { "ref": "votre-id-hote", "email": "hote@exemple.fr", "name": "Marie" },
-     "listings": [ { "id": "votre-id-annonce", "name": "Chalet des Dunes", "url": "https://…" } ],
+     "listings": [ { "id": "votre-id-annonce", "name": "Chalet des Dunes", "url": "https://…",
+                     "firstPhotoUrl": "https://…/premiere-photo.jpg" } ],
      "returnUrl": "https://logement-atypique.fr/bedlink/retour", "locale": "fr" }
    ```
+   `firstPhotoUrl` (facultatif) : la **première photo** de la fiche de l'annonce,
+   une seule, en `https`, 1000 caractères au plus. L'hôte la voit à côté de la
+   photo du logement BedLink qu'il choisit, pour vérifier d'un coup d'œil qu'il
+   relie le bon. L'image est chargée telle quelle par son navigateur : l'URL doit
+   être publique (pas de lien signé qui expire avant 30 minutes). Sans elle, un
+   emplacement neutre s'affiche ; un appel sans ce champ reste valide.
    Réponse `201` : `{ "id": "cs_…", "url": "https://app.bedlink.fr/fr/connecter/cs_…", "status": "pending", "expiresAt": "…" }`.
    Lien valable 30 minutes : redirigez l'hôte vers `url`.
 2. **Chez BedLink** : l'hôte se connecte ou crée son compte, choisit pour
