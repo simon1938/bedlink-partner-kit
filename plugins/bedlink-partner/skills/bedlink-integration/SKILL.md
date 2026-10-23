@@ -221,5 +221,53 @@ Termine par :
 - l'URL du webhook à transmettre à BedLink quand les webhooks ouvriront :
   `https://<domaine>/api/bedlink/webhook` ;
 - les fonctions dormantes et leur drapeau (`references/contract.md`) ;
-- la suite : BedLink prévoit une certification de l'intégration (à la manière
-  d'un channel manager) ; le rapport `check.mjs --json` en sera la base.
+- la suite : la certification BedLink (§ 12), à passer avant le pilote réel.
+
+## 12. La certification BedLink [DISPO, 23/10/2026]
+
+À la manière d'un channel manager : BedLink joue l'hôte sur VOS logements de
+test pendant un passage (2 h au plus, un test attend 15 min au plus), votre
+intégration réelle fait les appels, et chaque test passe au vert. Un passage
+tout vert donne un code `BLC-XXXXX-XXXXX-XXXXX-XXXXX`, que BedLink valide.
+
+**Avant de lancer** : clé de TEST (`blp_test_…`) dans `.env.local`, URL et
+secret du webhook réglés dans l'espace partenaire, signature vérifiée (un
+webhook mal signé doit recevoir un 4xx), copie du calendrier sur 365 jours,
+fil `/changes`, et vos deux logements de test reliés (le passage en
+déconnecte un puis le fait reconnecter ; à la fin tout est remis comme avant).
+
+**Lancer** : espace partenaire → Certification → « Lancer » (case « sauter le
+paiement » possible : le test est alors « sauté », pas « réussi »), ou
+`POST /api/partner/v1/certification` `{ "skipPayment": false }`.
+
+**Pendant** : `GET /certification/{cert_…}` donne le test courant, sa consigne,
+ses paramètres tirés au hasard et le champ à répondre ; répondre par
+`POST /certification/{cert_…}/answers` `{ "test": "<id>", "answer": {…} }`.
+TOUS les appels du parcours portent l'en-tête `BedLink-Certification: cert_…`.
+Répondez depuis VOTRE copie (calendrier, webhooks reçus), jamais depuis une
+valeur fixe : les prix, dates et jetons changent à chaque passage.
+
+**Les 24 tests** : logements · fiche · calendrier 365 j · prix changé par
+l'hôte (webhook `availability.changed` + `/changes`) · date bloquée · devis
+cohérent · refus séjour trop court (409) · refus dates indisponibles (409) ·
+option 15 min · paiement simulé (page `/pay/…`, « paiement réussi », aucune
+carte) · réservation confirmée · idempotence (rejeu → 200, pas de doublon) ·
+webhook `reservation.confirmed` · `GET /reservations?since=` · message du
+voyageur (vous → BedLink) · réponse de l'hôte (webhook `message.created`, puis
+le fil) · modification des dates (`PATCH /reservations/{id}`) · refus de
+modifier une réservation d'un autre canal (404) · annulation par vous (dates
+rouvertes) · annulation par l'hôte (`cancelledBy: host`) · déconnexion
+(`DELETE /properties/{id}/connection`, webhook `property.disconnected`) ·
+connexion par l'hôte (`POST /connect-sessions` avec une annonce ; BedLink,
+dans le rôle de l'hôte, relie votre PREMIÈRE annonce au logement ; attendez
+`completed` sur `GET /connect-sessions/{id}` et `property.connected`) ·
+import (`/properties/{id}/reservations/import`, rejeu `unchanged`, puis un
+message voyageur et un message hôte avec `sentAt` passé) · webhook mal signé
+refusé.
+
+Liste blanche requise : `certification`, `calendar_366`, `changes`,
+`webhooks`, `reservations_list`, `messages`, `reservations_modify`, `connect`
+(+ `payments` si le paiement n'est pas sauté). Abandon :
+`DELETE /certification/{cert_…}`. Tout ce que le passage crée sur le compte de
+test est supprimé à la fin.
+
