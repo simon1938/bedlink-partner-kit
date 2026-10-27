@@ -271,3 +271,32 @@ Liste blanche requise : `certification`, `calendar_366`, `changes`,
 `DELETE /certification/{cert_…}`. Tout ce que le passage crée sur le compte de
 test est supprimé à la fin.
 
+## 13. Location à la journée et sa mini-certification [DISPO, 28/10/2026]
+
+Seulement si BedLink vous a ouvert `formules` (liste blanche) et qu'un
+logement de test a la location à la journée allumée. Lis la section « Location
+à la journée » de `references/contract.md`.
+
+**Le parcours voyageur** : lire les formules et les créneaux libres d'un
+logement (`GET /properties/{id}/formules`, `GET /properties/{id}/creneaux`),
+devis (`POST /creneaux/quotes`), réservation avec `payment.returnUrl`
+(`POST /creneaux/reservations`), puis `components/bedlink/PaymentFrame.tsx`
+avec `payment.embedUrl` exactement comme pour un séjour, et la page de
+confirmation qui relit `GET /creneaux/reservations/{id}`. Pas de majoration de
+canal : afficher le prix de la formule tel quel.
+
+**La mini-certification** (pour un partenaire déjà certifié sur les séjours,
+il ne rejoue pas tout) : espace partenaire → Certification → parcours
+« Module Location à la journée » → Lancer, ou
+`POST /api/partner/v1/certification` `{ "module": "day_rental", "skipPayment": false }`.
+Mêmes règles que le passage complet (2 h, 15 min par test, en-tête
+`BedLink-Certification`, code `BLC-…` validé par BedLink). Les 7 tests :
+formules (lire, créer avec la référence, le nom et le prix tirés, puis
+renommer) · créneaux libres d'un jour · devis (= prix réel) · réservation
+(`pending_payment` avec page de paiement) · paiement par la page BedLink
+intégrée (« paiement réussi », puis relire : `confirmed`) · webhook
+`availability.changed` du jour vendu · annulation (`DELETE`). Liste blanche
+requise : `certification`, `changes`, `webhooks`, `formules` (+ `payments`).
+Tout ce que le passage crée (formule, réservation de créneau) est supprimé à
+la fin.
+

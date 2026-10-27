@@ -106,13 +106,21 @@ Les tables, champ par champ : `references/data-model.md`.
 /bedlink-partner:bedlink-integration update
 ```
 
-## Certification (phase 2)
+## Location à la journée (`formules`)
 
-BedLink prévoit une certification de votre intégration, à la manière de celle
-que les channel managers passent : une série de scénarios joués sur la sandbox
-(synchro, changement de prix, option expirée, annulation par l'hôte, webhook
-rejoué, paiement refusé…) et vérifiés de notre côté. Le rapport
-`check.mjs --json` en sera le point de départ. Rien à faire pour l'instant.
+Formules et créneaux dans la journée (shooting, séminaire, mariage…) : lire les
+formules, en créer et les modifier, lister les créneaux libres, devis,
+réservation et paiement d'un créneau par la page BedLink intégrée, annulation.
+Contrat : section « Location à la journée » de `references/contract.md` ;
+parcours : § 13 de la skill.
+
+## Certification
+
+Ouverte depuis le 23/10/2026 (24 tests, § 12 de la skill). Pour un partenaire
+déjà certifié, un **module court « Location à la journée »** (7 tests) se
+lance à part : espace partenaire → Certification → « Module Location à la
+journée », ou `POST /api/partner/v1/certification` `{ "module": "day_rental" }`
+(§ 13 de la skill).
 
 ## Pour l'équipe BedLink (maintenance du kit)
 

@@ -280,6 +280,36 @@ annonces et ses logements BedLink se fait chez BedLink, sous les yeux de l'hôte
 Clé de test : seuls les comptes de test BedLink se relient. En production,
 l'accès d'un logement s'ouvre après validation par BedLink.
 
+## Location à la journée [DISPO] (`formules`)
+
+Un logement peut se louer **par créneau dans la journée** (shooting, séminaire,
+mariage…) selon des **formules** : un nom, un ou plusieurs créneaux (`id`,
+`label`, `start`/`end` en `HH:MM`, `priceCents`), une capacité, des jours
+possibles, un délai minimum (`minNoticeHours`) et `nightIncluded` (la formule
+ferme aussi la nuit chez les plateformes). Ces réservations ne passent jamais
+par le calendrier des nuits ; seule une formule `nightIncluded` crée en plus une
+réservation ordinaire. Le logement doit avoir la location à la journée allumée
+par l'hôte (sinon 409 `day_rental_off`). **Aucune majoration de canal** : le
+prix de la formule s'applique tel quel.
+
+| Appel | Rôle |
+|---|---|
+| `GET /properties/{id}/formules` | Les formules visibles pour vous (`createdBy: host | partner`). |
+| `POST /properties/{id}/formules` | Créer une formule (`externalId` obligatoire, rejeu = 200). Elle apparaît chez l'hôte « créée par vous » ; l'hôte peut la modifier (dernière écriture gagnante). |
+| `PATCH /properties/{id}/formules/{formuleId}` | Modifier (au moins un champ). |
+| `GET /properties/{id}/creneaux?from=&to=` | Les créneaux LIBRES (62 jours au plus) : `date`, `formuleId`, `slotId`, `startAt`/`endAt` (ISO, fuseau du logement), `priceCents`. Un créneau pendant un séjour n'est jamais proposé. |
+| `POST /creneaux/quotes` | `{ propertyId, formuleId, slotId, date, guests }` → `available`, `totalCents`, `startAt`, `endAt`. Rien n'est réservé. |
+| `POST /creneaux/reservations` | `{ propertyId, formuleId, slotId, date, guests, externalId, guest: { name, email, phone? }, notes?, payment?: { returnUrl, cancelUrl? } }`. Avec `payment` : statut `pending_payment` (option de 15 min) et `payment.url` / `payment.embedUrl` (page BedLink `/pay/pc_…`, à afficher comme pour un séjour : `PaymentFrame`). Sans `payment` : sandbox seulement, `confirmed` tout de suite. Rejeu du même `externalId` = 200 et la même réservation. |
+| `GET /creneaux/reservations?since=` · `GET /creneaux/reservations/{id}` | Relire (`pending_payment`, `confirmed`, `cancelled`, `expired`). |
+| `DELETE /creneaux/reservations/{id}` | Annuler (la nuit incluse part avec). |
+
+Webhooks : pas de nouveau type. Une formule créée, modifiée ou supprimée fait
+un changement `property` dans `/changes` (relisez les formules) ; un créneau
+vendu ou libéré fait `availability.changed` sur le jour concerné (relisez les
+créneaux). En sandbox la page de paiement est simulée (« paiement réussi »,
+aucune carte) ; elle montre la formule, le créneau, le jour, les heures et le
+montant.
+
 ## Webhooks [DISPO] (`webhooks`)
 
 Voir `webhooks.md`.
