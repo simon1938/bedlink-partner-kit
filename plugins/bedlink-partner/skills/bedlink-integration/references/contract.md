@@ -289,7 +289,7 @@ possibles, un délai minimum (`minNoticeHours`) et `nightIncluded` (la formule
 ferme aussi la nuit chez les plateformes). Ces réservations ne passent jamais
 par le calendrier des nuits ; seule une formule `nightIncluded` crée en plus une
 réservation ordinaire. Le logement doit avoir la location à la journée allumée
-par l'hôte (sinon 409 `day_rental_off`). **Aucune majoration de canal** : le
+par l'hôte (sinon 409 `day_rental_disabled`). **Aucune majoration de canal** : le
 prix de la formule s'applique tel quel.
 
 | Appel | Rôle |
