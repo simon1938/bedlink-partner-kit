@@ -9,8 +9,7 @@ croquis validé le 30/10/2026
 
 ## 1. Installer (une fois)
 
-Le dépôt est privé : votre compte GitHub doit y avoir accès (demandez-le à
-Simon), puis, une fois pour toutes : `gh auth login` et `gh auth setup-git`.
+Le dépôt est public : aucun compte GitHub n'est nécessaire.
 
 **Claude Code**, à la racine de votre projet :
 
