@@ -27,6 +27,7 @@ projet, une fois pour toutes :
 git clone https://github.com/simon1938/bedlink-partner-kit.git ../bedlink-partner-kit
 mkdir -p .cursor/skills
 cp -r ../bedlink-partner-kit/plugins/bedlink-partner/skills/bedlink-integration .cursor/skills/
+cp -r ../bedlink-partner-kit/plugins/bedlink-partner/skills/bedlink-tunnel .cursor/skills/
 ```
 
 Puis, dans le chat Agent de Cursor, tapez `/bedlink-integration` (ou
@@ -113,6 +114,21 @@ formules, en créer et les modifier, lister les créneaux libres, devis,
 réservation et paiement d'un créneau par la page BedLink intégrée, annulation.
 Contrat : section « Location à la journée » de `references/contract.md` ;
 parcours : § 13 de la skill.
+
+## Tunnel de réservation (`bedlink-tunnel`)
+
+La page où le voyageur réserve et paie, à vos couleurs : dates (ou jour et
+créneau), extras en photos, coordonnées, paiement BedLink intégré avec option
+de 15 minutes, confirmation, e-mails au voyageur et à l'hôte. Composants React
+de référence, jetons de design en variables CSS, croquis validé et recette.
+S'installe après `bedlink-integration` :
+
+```
+/bedlink-partner:bedlink-tunnel
+```
+
+Guide à envoyer au partenaire : [`GUIDE.md`](GUIDE.md). Skill :
+`plugins/bedlink-partner/skills/bedlink-tunnel/SKILL.md`.
 
 ## Certification
 

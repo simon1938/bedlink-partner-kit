@@ -13,7 +13,10 @@
     "allowImportingTsExtensions": true,
     "paths": {
       "@/lib/prisma": ["./test/stubs/prisma.ts"],
-      "@/*": ["./plugins/bedlink-partner/skills/bedlink-integration/templates/*"]
+      "@/*": [
+        "./plugins/bedlink-partner/skills/bedlink-integration/templates/*",
+        "./plugins/bedlink-partner/skills/bedlink-tunnel/templates/*"
+      ]
     }
   },
   "include": ["plugins/**/templates/**/*.ts", "plugins/**/templates/**/*.tsx", "test/**/*.ts"]

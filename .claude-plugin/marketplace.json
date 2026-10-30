@@ -1,12 +1,15 @@
 {
   "name": "bedlink-partner-kit",
   "description": "Kit d'intégration des partenaires BedLink",
-  "owner": { "name": "BedLink", "email": "contact@bedlink.fr" },
+  "owner": {
+    "name": "BedLink",
+    "email": "contact@bedlink.fr"
+  },
   "plugins": [
     {
       "name": "bedlink-partner",
       "source": "./plugins/bedlink-partner",
-      "description": "Installe et vérifie l'intégration de l'API partenaire BedLink (Next.js, Postgres/Neon, Vercel)."
+      "description": "Installe et vérifie l'intégration de l'API partenaire BedLink (Next.js, Postgres/Neon, Vercel), et construit le tunnel de réservation à vos couleurs."
     }
   ]
 }

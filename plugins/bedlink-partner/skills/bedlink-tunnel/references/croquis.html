@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Croquis tunnel LA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400&family=Manrope:wght@400;500;600;700&family=Syncopate:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ============ Jetons (identité relevée sur logement-atypique.fr, 30/10/2026) ============ */
+:root{
+  --la-primary:#590B00;        /* bordeaux LA */
+  --la-primary-hover:#4a0900;
+  --la-on-primary:#FFFFFF;
+  --la-bg:#FAF9F7;             /* fond crème */
+  --la-surface:#FFFFFF;
+  --la-muted:#F4F3F0;
+  --la-cream:#F6F1EA;
+  --la-ink:#1A1412;
+  --la-ink-2:rgba(26,20,18,.66);
+  --la-ink-3:rgba(26,20,18,.42);
+  --la-border:#E5E2DD;
+  --la-border-strong:rgba(26,20,18,.22);
+  --la-tint:rgba(89,11,0,.07);
+  --la-tint-2:rgba(89,11,0,.14);
+  --la-ok:#2F6B45;
+  --la-danger:#A3261A;
+  --la-radius:0px;             /* LA : --radius: 0 */
+  --font-display:'Bodoni Moda','Cormorant Garamond',Georgia,serif;
+  --font-label:'Syncopate','Manrope',ui-sans-serif,system-ui,sans-serif;
+  --font-body:'Manrope',ui-sans-serif,system-ui,-apple-system,sans-serif;
+  /* habillage du croquis (hors tunnel) */
+  --ws-bg:#ECEAE6;
+  --ws-ink:#1A1412;
+  --ws-ink-2:rgba(26,20,18,.6);
+  --ws-chrome:#DCD8D2;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --la-primary:#E05248;      /* LA sombre : hsl(4 71% 58%) */
+    --la-primary-hover:#E86A61;
+    --la-on-primary:#220907;
+    --la-bg:#220907;           /* hsl(4 67% 8%) */
+    --la-surface:#2B0E0B;
+    --la-muted:#331310;
+    --la-cream:#3A1713;
+    --la-ink:#FFFCF0;          /* hsl(48 100% 97%) */
+    --la-ink-2:rgba(255,252,240,.7);
+    --la-ink-3:rgba(255,252,240,.45);
+    --la-border:#43170F;       /* hsl(4 67% 15%) */
+    --la-border-strong:rgba(255,252,240,.25);
+    --la-tint:rgba(224,82,72,.12);
+    --la-tint-2:rgba(224,82,72,.22);
+    --la-ok:#7FC79A;
+    --la-danger:#F08A80;
+    --ws-bg:#140504;
+    --ws-ink:#FFFCF0;
+    --ws-ink-2:rgba(255,252,240,.6);
+    --ws-chrome:#3A1713;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --la-primary:#E05248;--la-primary-hover:#E86A61;--la-on-primary:#220907;
+  --la-bg:#220907;--la-surface:#2B0E0B;--la-muted:#331310;--la-cream:#3A1713;
+  --la-ink:#FFFCF0;--la-ink-2:rgba(255,252,240,.7);--la-ink-3:rgba(255,252,240,.45);
+  --la-border:#43170F;--la-border-strong:rgba(255,252,240,.25);
+  --la-tint:rgba(224,82,72,.12);--la-tint-2:rgba(224,82,72,.22);
+  --la-ok:#7FC79A;--la-danger:#F08A80;
+  --ws-bg:#140504;--ws-ink:#FFFCF0;--ws-ink-2:rgba(255,252,240,.6);--ws-chrome:#3A1713;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--ws-bg);color:var(--ws-ink);font-family:var(--font-body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+input,textarea,select{font:inherit;color:inherit}
+
+/* ============ Habillage du croquis ============ */
+.ws-head{max-width:1440px;margin:0 auto;padding:20px 16px 8px;display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end;justify-content:space-between}
+.ws-title{margin:0;font-family:var(--font-display);font-weight:400;font-size:26px;line-height:1.1}
+.ws-sub{margin:4px 0 0;color:var(--ws-ink-2);font-size:13px;max-width:62ch}
+.ws-tools{display:flex;flex-wrap:wrap;gap:8px}
+.seg{display:inline-flex;border:1px solid var(--la-border-strong);background:var(--la-surface)}
+.seg button{border:0;background:transparent;padding:8px 12px;font-size:12px;font-weight:600;min-height:36px}
+.seg button[aria-pressed="true"]{background:var(--la-ink);color:var(--la-bg)}
+.ws-screens{max-width:1440px;margin:0 auto;padding:8px 16px 0;display:flex;gap:6px;overflow-x:auto;scrollbar-width:thin}
+.chip{flex:0 0 auto;border:1px solid var(--la-border-strong);background:var(--la-surface);padding:8px 12px;font-size:12.5px;font-weight:600;min-height:38px;white-space:nowrap}
+.chip b{font-family:var(--font-label);font-size:9px;letter-spacing:.12em;margin-right:6px;color:var(--la-primary)}
+.chip[aria-current="true"]{background:var(--la-primary);color:var(--la-on-primary);border-color:var(--la-primary)}
+.chip[aria-current="true"] b{color:inherit}
+.ws-stage{max-width:1440px;margin:0 auto;padding:16px;display:grid;gap:24px;align-items:start}
+.ws-stage.both{grid-template-columns:minmax(0,1fr) 392px}
+.ws-stage.desk{grid-template-columns:minmax(0,1fr)}
+.ws-stage.mob{grid-template-columns:392px;justify-content:center}
+.ws-stage.desk .dev-mob,.ws-stage.mob .dev-desk{display:none}
+.dev-label{font-family:var(--font-label);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--ws-ink-2);margin:0 0 8px}
+.dev-desk .chrome{display:flex;align-items:center;gap:10px;background:var(--ws-chrome);padding:9px 12px;border:1px solid var(--la-border-strong);border-bottom:0}
+.dots{display:flex;gap:6px}.dots i{width:10px;height:10px;border-radius:50%;background:var(--la-border-strong);display:block}
+.url{flex:1;min-width:0;background:var(--la-surface);padding:4px 10px;font-size:12px;color:var(--ws-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.frame{position:relative;background:var(--la-bg);color:var(--la-ink);border:1px solid var(--la-border-strong);overflow:auto;overscroll-behavior:contain;container-type:inline-size;container-name:tunnel}
+.dev-desk .frame{height:820px}
+.dev-mob .frame{width:392px;height:800px;border-radius:34px;border:10px solid #111;box-shadow:0 20px 50px rgba(0,0,0,.18);scrollbar-width:none}
+.dev-mob .frame::-webkit-scrollbar{display:none}
+.ws-notes{max-width:1440px;margin:0 auto;padding:0 16px 48px}
+.notes{background:var(--la-surface);color:var(--la-ink);border:1px solid var(--la-border);padding:20px}
+.notes h2{margin:0 0 4px;font-family:var(--font-display);font-weight:400;font-size:22px}
+.notes ol{margin:10px 0 0;padding-left:20px}
+.notes li{margin:6px 0;font-size:14px;color:var(--la-ink-2)}
+.notes li strong{color:var(--la-ink)}
+.fake-tag{display:inline-block;font-family:var(--font-label);font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;padding:3px 7px;border:1px dashed var(--la-border-strong);color:var(--ws-ink-2)}
+
+/* Vraie largeur téléphone : seul le tunnel, plein écran, barre collante réelle */
+@media (max-width: 860px){
+  .ws-tools .seg.view{display:none}
+  .ws-stage,.ws-stage.both,.ws-stage.desk,.ws-stage.mob{grid-template-columns:minmax(0,1fr);padding:12px 0 0}
+  #stage .dev-desk{display:none}
+  #stage .dev-mob{display:block}
+  .dev-mob .dev-label{padding:0 16px}
+  .dev-mob .frame{width:100%;height:auto;overflow:visible;border:0;border-radius:0;box-shadow:none;border-top:1px solid var(--la-border)}
+}
+
+/* ============ Le tunnel LA ============ */
+.t{min-height:100%;display:flex;flex-direction:column;font-family:var(--font-body);color:var(--la-ink);background:var(--la-bg)}
+.t-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--la-border);background:var(--la-surface)}
+.wordmark{font-family:var(--font-label);font-weight:700;font-size:11px;letter-spacing:.22em;color:var(--la-primary);line-height:1.25}
+.wordmark small{display:block;font-weight:400;font-size:8px;letter-spacing:.3em;color:var(--la-ink-3)}
+.t-head .back{border:0;background:none;font-size:12.5px;color:var(--la-ink-2);padding:8px 0;min-height:40px}
+.t-main{flex:1;width:100%;max-width:1120px;margin:0 auto;padding:20px 16px 32px}
+.kicker{font-family:var(--font-label);font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--la-primary);margin:0 0 8px}
+.h1{font-family:var(--font-display);font-weight:400;font-size:30px;line-height:1.08;margin:0;letter-spacing:-.01em}
+.h2{font-family:var(--font-display);font-weight:400;font-size:24px;line-height:1.15;margin:0}
+.lead{color:var(--la-ink-2);font-size:14px;margin:8px 0 0}
+.muted{color:var(--la-ink-2)}
+.small{font-size:12.5px}
+
+/* stepper (Alexian / Yenna : pastilles carrées + trait) */
+.stepper{display:flex;align-items:center;gap:8px;margin:0 0 22px;overflow-x:auto;scrollbar-width:none}
+.st{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.st i{width:26px;height:26px;display:grid;place-items:center;font-style:normal;font-size:11px;font-weight:700;border:1px solid var(--la-border-strong);color:var(--la-ink-3)}
+.st span{font-family:var(--font-label);font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--la-ink-3);display:none}
+.st.on i,.st.done i{background:var(--la-primary);border-color:var(--la-primary);color:var(--la-on-primary)}
+.st.on span{color:var(--la-ink);display:inline}
+.st-line{flex:1 0 14px;height:1px;background:var(--la-border-strong);min-width:14px}
+.st-line.done{background:var(--la-primary)}
+
+.layout{display:grid;grid-template-columns:minmax(0,1fr);gap:28px;align-items:start}
+.aside{display:none}
+.card{background:var(--la-surface);border:1px solid var(--la-border);padding:18px}
+.sec{margin-top:26px}
+.sec-title{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0 0 12px}
+.sec-title h3{margin:0;font-family:var(--font-display);font-weight:400;font-size:21px}
+
+/* galerie */
+.gal{display:flex;gap:6px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 -16px;padding:0 16px}
+.gal::-webkit-scrollbar{display:none}
+.ph{position:relative;flex:0 0 88%;aspect-ratio:4/3;scroll-snap-align:start;overflow:hidden;background:var(--g,#556b4f)}
+.ph::after{content:attr(data-cap);position:absolute;left:10px;bottom:9px;font-size:11px;color:#fff;background:rgba(0,0,0,.35);padding:3px 7px}
+.ph svg{position:absolute;inset:0;width:100%;height:100%}
+.gal-count{position:absolute;right:10px;top:10px;font-size:11px;color:#fff;background:rgba(0,0,0,.45);padding:3px 8px;z-index:1}
+.facts{display:flex;flex-wrap:wrap;gap:6px 14px;margin:10px 0 0;font-size:13px;color:var(--la-ink-2)}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.badge{font-family:var(--font-label);font-size:8px;letter-spacing:.14em;text-transform:uppercase;border:1px solid var(--la-border-strong);padding:5px 8px;color:var(--la-ink-2)}
+
+/* type de séjour */
+.types{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--la-border-strong)}
+.types button{border:0;border-right:1px solid var(--la-border-strong);background:var(--la-surface);padding:11px 6px;min-height:58px;text-align:center;line-height:1.2}
+.types button:last-child{border-right:0}
+.types b{display:block;font-size:13.5px;font-weight:600}
+.types small{display:block;font-size:11px;color:var(--la-ink-3);margin-top:3px}
+.types button[aria-pressed="true"]{background:var(--la-primary);color:var(--la-on-primary)}
+.types button[aria-pressed="true"] small{color:inherit;opacity:.8}
+
+/* voyageurs (WHA booking-widget : - valeur +) */
+.guests{display:flex;flex-direction:column}
+.g-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--la-border)}
+.g-row:last-child{border-bottom:0}
+.g-row small{display:block;color:var(--la-ink-3);font-size:11.5px}
+.stp{display:flex;align-items:center;gap:10px}
+.stp button{width:40px;height:40px;border:1px solid var(--la-border-strong);background:var(--la-surface);font-size:18px;line-height:1}
+.stp button:disabled{opacity:.3;cursor:not-allowed}
+.stp output{min-width:18px;text-align:center;font-weight:600}
+
+/* calendrier (Parenthèse / WHA : react-day-picker range, demi-case) */
+.cal-wrap{display:grid;grid-template-columns:minmax(0,1fr);gap:24px}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.cal-nav button{width:40px;height:40px;border:1px solid transparent;background:none;font-size:18px;color:var(--la-ink-2)}
+.cal-nav button:hover{border-color:var(--la-border-strong)}
+.cal-nav button:disabled{opacity:.25;cursor:not-allowed}
+.cal-month{font-family:var(--font-display);font-style:italic;font-size:19px;text-transform:capitalize}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}
+.cal-wd{font-family:var(--font-label);font-size:8px;letter-spacing:.14em;text-align:center;color:var(--la-ink-3);padding:6px 0}
+.day{aspect-ratio:1/1;min-height:40px;border:1px solid transparent;background:none;font-size:13.5px;display:grid;place-items:center;position:relative}
+.day:hover:not(:disabled){border-color:var(--la-tint-2);background:var(--la-tint)}
+.day:disabled{opacity:.28;text-decoration:line-through;cursor:not-allowed}
+.day.today{color:var(--la-primary);font-weight:700}
+.day.mid{background:var(--la-tint);}
+.day.sel{background:var(--la-primary);color:var(--la-on-primary);font-weight:600;opacity:1;text-decoration:none}
+.day.half{background-image:linear-gradient(135deg,transparent 0 50%,var(--la-border-strong) 50% 100%)}
+.day.half:disabled{opacity:.9;text-decoration:none}
+.day.sel.half{background-image:none}
+.cal-2{display:none}
+.cal-foot{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;margin-top:12px}
+.legend{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--la-ink-2);max-width:46ch}
+.sw{width:14px;height:14px;flex:0 0 auto;border:1px solid var(--la-border-strong);background-image:linear-gradient(135deg,transparent 0 50%,var(--la-border-strong) 50% 100%)}
+.ghost{border:1px solid var(--la-border-strong);background:none;padding:8px 12px;font-size:12px;min-height:40px}
+.ghost:hover{border-color:var(--la-primary);color:var(--la-primary)}
+.sel-line{font-family:var(--font-label);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--la-primary);margin-top:10px}
+.avail{font-size:12.5px;margin-top:6px;color:var(--la-ok)}
+
+/* formules et créneaux */
+.formules{display:grid;gap:10px}
+.formule{width:100%;text-align:left;border:1px solid var(--la-border);background:var(--la-surface);padding:16px;display:grid;gap:6px}
+.formule[aria-pressed="true"]{border-color:var(--la-primary);background:var(--la-tint)}
+.formule .top{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.formule b{font-family:var(--font-display);font-weight:400;font-size:19px}
+.price{font-weight:700;color:var(--la-primary);white-space:nowrap}
+.slots{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.slot{border:1px solid var(--la-border-strong);background:var(--la-surface);padding:9px 12px;font-size:13px;min-height:44px}
+.slot small{display:block;font-size:10.5px;color:var(--la-ink-3)}
+.slot[aria-pressed="true"]{background:var(--la-primary);border-color:var(--la-primary);color:var(--la-on-primary)}
+.slot[aria-pressed="true"] small{color:inherit;opacity:.8}
+
+/* extras (Cocons d'Alex / Parenthèse : carte cliquable, case, photo, prix) */
+.extras{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+.extra{position:relative;width:100%;text-align:left;border:1px solid var(--la-border);background:var(--la-surface);padding:0;display:grid;grid-template-columns:96px minmax(0,1fr);min-height:96px}
+.extra:hover{border-color:var(--la-border-strong)}
+.extra[aria-pressed="true"]{border-color:var(--la-primary);box-shadow:inset 0 0 0 1px var(--la-primary)}
+.extra .img{position:relative;background:var(--g)}
+.extra .img svg{position:absolute;inset:0;width:100%;height:100%}
+.extra .body{padding:12px 12px 12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.extra .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.extra .name{font-family:var(--font-display);font-size:17px;line-height:1.15}
+.extra .desc{font-size:12.5px;color:var(--la-ink-2)}
+.box{position:absolute;top:8px;left:8px;width:24px;height:24px;border:1px solid rgba(255,255,255,.9);background:rgba(0,0,0,.25);display:grid;place-items:center;color:#fff;font-size:14px;font-weight:700}
+.extra[aria-pressed="true"] .box{background:var(--la-primary);border-color:var(--la-primary);color:var(--la-on-primary)}
+.qty{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:12px;color:var(--la-ink-2)}
+.qty .stp button{width:34px;height:34px;font-size:15px}
+.tag-off{font-size:11px;color:var(--la-ink-3)}
+
+/* formulaire (Yenna / Alexian : grille 2 colonnes, libellé au-dessus, aide téléphone) */
+.fields{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+.f label{display:block;font-size:12.5px;font-weight:600;margin-bottom:6px}
+.f label em{color:var(--la-primary);font-style:normal;margin-left:2px}
+.f input,.f textarea{width:100%;border:1px solid var(--la-border-strong);background:var(--la-surface);padding:12px 13px;font-size:16px;min-height:46px;border-radius:var(--la-radius)}
+.f textarea{min-height:96px;resize:vertical}
+.f input:focus,.f textarea:focus{outline:none;border-color:var(--la-primary);box-shadow:0 0 0 3px var(--la-tint)}
+.f .hint{font-size:11.5px;color:var(--la-ink-3);margin-top:5px}
+.err{border:1px solid var(--la-danger);color:var(--la-danger);background:var(--la-tint);padding:10px 12px;font-size:13px;margin-top:14px}
+
+/* paiement */
+.hold{display:flex;align-items:center;gap:12px;border:1px solid var(--la-primary);background:var(--la-tint);padding:12px 14px;margin-bottom:16px}
+.hold .clock{font-variant-numeric:tabular-nums;font-weight:700;font-size:20px;color:var(--la-primary);min-width:62px}
+.hold p{margin:0;font-size:12.5px;color:var(--la-ink-2)}
+.hold.late{border-color:var(--la-danger)}
+.pe{border:1px solid var(--la-border);background:var(--la-surface);padding:16px}
+.pe-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px}
+.pe-tab{border:1px solid var(--la-border-strong);background:var(--la-surface);padding:9px 10px;text-align:left;font-size:12.5px;font-weight:600;min-height:52px;border-radius:6px}
+.pe-tab small{display:block;font-weight:400;color:var(--la-ink-3);font-size:10.5px}
+.pe-tab[aria-pressed="true"]{border-color:var(--la-primary);box-shadow:0 0 0 1px var(--la-primary)}
+.pe .f input{border-radius:6px}
+.pe-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:12px}
+.pe-note{font-size:11px;color:var(--la-ink-3);margin-top:10px}
+.cgv{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--la-ink-2);margin-top:16px;cursor:pointer}
+.cgv input{width:18px;height:18px;margin-top:2px;accent-color:var(--la-primary);flex:0 0 auto}
+.cgv a{color:var(--la-ink)}
+.powered{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:14px;font-size:11px;color:var(--la-ink-3);letter-spacing:.02em}
+.powered svg{width:12px;height:12px}
+
+/* boutons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;border:1px solid var(--la-primary);background:var(--la-primary);color:var(--la-on-primary);padding:14px 20px;min-height:50px;font-family:var(--font-label);font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;border-radius:var(--la-radius)}
+.btn:hover{background:var(--la-primary-hover)}
+.btn:disabled{background:var(--la-muted);border-color:var(--la-border);color:var(--la-ink-3);cursor:not-allowed}
+.btn.block{width:100%}
+.btn.line{background:none;color:var(--la-ink);border-color:var(--la-border-strong)}
+.actions{display:none;gap:10px;margin-top:22px}
+
+/* récap (Alexian / Yenna : colonne droite collante) */
+.recap h4{margin:0;font-family:var(--font-display);font-weight:400;font-size:21px}
+.r-thumb{display:flex;gap:12px;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--la-border)}
+.r-thumb .ph{flex:0 0 72px;aspect-ratio:1/1}
+.r-thumb .ph::after{display:none}
+.r-block{padding:12px 0;border-bottom:1px solid var(--la-border);display:grid;gap:7px;font-size:13px}
+.r-row{display:flex;justify-content:space-between;gap:12px}
+.r-row span:first-child{color:var(--la-ink-2)}
+.r-row span:last-child{text-align:right}
+.r-row.new{animation:pop .5s ease}
+@keyframes pop{from{background:var(--la-tint-2)}to{background:transparent}}
+.r-cap{font-family:var(--font-label);font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--la-primary)}
+.r-total{display:flex;justify-content:space-between;align-items:baseline;padding-top:14px}
+.r-total span:first-child{font-family:var(--font-label);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--la-primary)}
+.r-total strong{font-family:var(--font-display);font-weight:400;font-size:28px}
+.r-live{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--la-ok)}
+.r-live::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.r-foot{font-size:11.5px;color:var(--la-ink-3);margin-top:12px;text-align:center}
+
+/* barre collante mobile (Chalet WHA : bouton Réserver qui reste au défilement) */
+.mbar{position:sticky;bottom:0;z-index:5;background:var(--la-surface);border-top:1px solid var(--la-border-strong);box-shadow:0 -8px 24px rgba(0,0,0,.08);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
+.mbar-row{display:flex;align-items:center;gap:12px}
+.mbar-sum{flex:1;min-width:0;border:0;background:none;text-align:left;padding:4px 0;min-height:44px}
+.mbar-sum strong{display:block;font-family:var(--font-display);font-weight:400;font-size:21px;line-height:1.1}
+.mbar-sum small{display:block;font-size:11.5px;color:var(--la-ink-2);text-decoration:underline;text-underline-offset:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mbar .btn{flex:0 0 auto;padding:13px 18px}
+.mbar-sheet{max-height:52vh;overflow:auto;border-bottom:1px solid var(--la-border);margin:-2px 0 10px;padding-bottom:6px}
+
+/* confirmation */
+.done-ico{width:56px;height:56px;border:1px solid var(--la-primary);color:var(--la-primary);display:grid;place-items:center;font-size:26px;margin-bottom:16px}
+.ref{font-family:var(--font-label);font-size:10px;letter-spacing:.18em;color:var(--la-ink-2);margin-top:10px}
+.next{display:grid;gap:10px;margin-top:18px}
+.next div{display:flex;gap:12px;align-items:flex-start;font-size:13.5px}
+.next i{font-style:normal;width:24px;height:24px;flex:0 0 auto;display:grid;place-items:center;border:1px solid var(--la-border-strong);font-size:11px;font-weight:700}
+
+/* e-mails */
+.mails{max-width:1440px;margin:0 auto;padding:16px;display:grid;grid-template-columns:minmax(0,1fr);gap:24px}
+.mail-wrap .dev-label{margin-bottom:8px}
+.mail-meta{background:var(--la-surface);color:var(--la-ink);border:1px solid var(--la-border);border-bottom:0;padding:10px 14px;font-size:12.5px}
+.mail-meta b{font-weight:600}
+.mail{background:#F4F1EC;padding:20px 12px;border:1px solid var(--la-border)}
+.m{max-width:600px;margin:0 auto;background:#FFFFFF;color:#1A1412;font-family:var(--font-body);font-size:14.5px;line-height:1.55}
+.m-band{background:#590B00;color:#FFFFFF;padding:18px 24px;text-align:center}
+.m-band .wordmark{color:#FFFFFF}
+.m-band .wordmark small{color:rgba(255,255,255,.65)}
+.m-hero{height:150px;background:var(--g)}
+.m-body{padding:24px}
+.m-body h1{font-family:var(--font-display);font-weight:400;font-size:26px;line-height:1.15;margin:0 0 10px}
+.m-k{font-family:var(--font-label);font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;color:#590B00;margin:0 0 8px}
+.m-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13.5px}
+.m-table td{padding:8px 0;border-bottom:1px solid #ECE8E2;vertical-align:top}
+.m-table td:last-child{text-align:right}
+.m-table tr.tot td{border-bottom:0;font-weight:700;font-size:15px;padding-top:12px}
+.m-btn{display:inline-block;background:#590B00;color:#FFFFFF;text-decoration:none;font-family:var(--font-label);font-size:9.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;padding:14px 22px}
+.m-box{background:#F6F1EA;padding:14px 16px;font-size:13px;margin:16px 0}
+.m-foot{padding:16px 24px 22px;font-size:11.5px;color:rgba(26,20,18,.55);border-top:1px solid #ECE8E2;text-align:center}
+
+/* ============ Points de rupture du TUNNEL (sur la largeur du cadre, pas de l'écran) ============ */
+@container tunnel (min-width: 560px){
+  .fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .fields .full{grid-column:1/-1}
+  .extras{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .extra{grid-template-columns:minmax(0,1fr);grid-template-rows:130px auto}
+  .cal-wrap{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cal-2{display:block}
+  .st span{display:inline}
+  .nx1{visibility:hidden}
+  .formules{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@container tunnel (min-width: 880px){
+  .t-main{padding:28px 32px 48px}
+  .h1{font-size:40px}
+  .layout{grid-template-columns:minmax(0,1fr) 340px;gap:40px}
+  .aside{display:block;position:sticky;top:20px}
+  .mbar{display:none}
+  .actions{display:flex}
+  .gal{display:grid;grid-template-columns:2fr 1fr 1fr;grid-template-rows:170px 170px;margin:0;padding:0;overflow:hidden}
+  .gal .ph{aspect-ratio:auto;flex:none}
+  .gal .ph:first-child{grid-row:1/3}
+  .gal .ph:nth-child(n+6){display:none}
+  .gal-count{display:none}
+  .t-head{padding:16px 32px}
+}
+@media (max-width: 860px){
+  .mails{padding:12px 0}
+  .mail{padding:12px 0;border-left:0;border-right:0}
+  .mail-meta{border-left:0;border-right:0}
+  .mail-wrap .dev-label{padding:0 16px}
+}
+@media (min-width: 1100px){ .mails{grid-template-columns:repeat(2,minmax(0,1fr))} }
+</style>
+</head>
+<body>
+
+<header class="ws-head">
+  <div>
+    <h1 class="ws-title">Tunnel de réservation Logement Atypique · croquis</h1>
+    <p class="ws-sub">À valider par Simon. Données fictives, aucun appel réseau. Cliquez dans le tunnel : dates, type de séjour, extras, formulaire, paiement simulé.</p>
+  </div>
+  <div class="ws-tools">
+    <div class="seg view" role="group" aria-label="Affichage">
+      <button data-ws="view" data-v="both">Les deux</button>
+      <button data-ws="view" data-v="desk">Ordinateur</button>
+      <button data-ws="view" data-v="mob">Mobile</button>
+    </div>
+    <div class="seg" role="group" aria-label="Thème">
+      <button data-ws="theme" data-v="auto">Auto</button>
+      <button data-ws="theme" data-v="light">Clair</button>
+      <button data-ws="theme" data-v="dark">Sombre</button>
+    </div>
+  </div>
+</header>
+
+<nav class="ws-screens" aria-label="Écrans du tunnel" id="screens"></nav>
+
+<main id="stage" class="ws-stage both">
+  <section class="dev-desk" aria-label="Ordinateur">
+    <p class="dev-label">Ordinateur</p>
+    <div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="url">logement-atypique.fr/reserver/la-cabane-du-heron</span></div>
+    <div class="frame" id="f-desk"></div>
+  </section>
+  <section class="dev-mob" aria-label="Mobile">
+    <p class="dev-label">Mobile · 375 px</p>
+    <div class="frame" id="f-mob"></div>
+  </section>
+</main>
+
+<section id="mails" class="mails" hidden></section>
+
+<section class="ws-notes">
+  <div class="notes">
+    <h2>À trancher avant la skill</h2>
+    <p class="muted small" style="margin:0">Ce que ce croquis suppose. Le reste suit nos sites qui tournent.</p>
+    <ol>
+      <li><strong>Tout le tunnel sur une page, en étapes</strong> (fiche + dates, puis créneau, extras, coordonnées, paiement), avec le récap collant à droite sur ordinateur et la barre « Réserver » en bas sur mobile. Sur Alexian et la Parenthèse, les dates se choisissent sur la page du logement et le tunnel /booking est une autre page.</li>
+      <li><strong>La barre mobile est une vraie barre pleine largeur</strong> (total + « Voir le détail » + bouton), pas la pastille flottante de WHA. Elle déplie le récap sur place.</li>
+      <li><strong>Pas de prix par jour dans le calendrier</strong> : seul <code>quote</code> fait foi, donc le prix n'apparaît qu'une fois les dates posées (« Tarif vérifié en direct »). Le « à partir de » de la fiche viendrait de LA.</li>
+      <li><strong>Les extras en grille de cartes avec grande photo</strong> (sur mobile : liste avec vignette, comme la Parenthèse), dans une étape à part après les dates. Chez Alexian ils sont dans le formulaire des coordonnées.</li>
+      <li><strong>Où BedLink apparaît</strong> : seulement « Paiement sécurisé · Powered by BedLink » sous le bouton Payer. L'e-mail hôte propose « Ouvrir dans BedLink » : on le garde ou on renvoie vers LA ?</li>
+    </ol>
+  </div>
+</section>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------------- Données fictives ---------------- */
+var TODAY = new Date(2026, 9, 30); // 30/10/2026
+var LOG = {
+  nom: 'La Cabane du Héron',
+  lieu: 'Marais de Brière · Loire-Atlantique',
+  type: 'Cabane perchée',
+  capacite: '4 voyageurs · 1 chambre · 1 mezzanine',
+  desc: 'Perchée à six mètres dans un chêne, face aux roselières. Bain nordique sur la terrasse, poêle à bois, nuit au chant des grenouilles.',
+  hote: 'Claire'
+};
+var PHOTOS = [
+  ['La cabane au lever du jour','linear-gradient(160deg,#B9A27A 0%,#6E7D58 45%,#2F3E36 100%)','cabane'],
+  ['Terrasse et bain nordique','linear-gradient(170deg,#C9B79A,#7C6A55 60%,#3B2A20)','bain'],
+  ['La mezzanine','linear-gradient(160deg,#E8DCC6,#B08D57 70%,#6E5534)','lit'],
+  ['Vue sur les roselières','linear-gradient(180deg,#D9D3C3 0%,#A9B39A 45%,#56664B 100%)','marais'],
+  ['Le poêle à bois','linear-gradient(160deg,#3B2A20,#7A3B1D 60%,#C7783F)','poele'],
+  ['Accès par la passerelle','linear-gradient(160deg,#9AA58A,#4C5B42)','cabane']
+];
+// nuits déjà prises (ISO de la NUIT, comme /api/direct/calendar)
+var BOOKED = new Set();
+function addRange(a,b){var d=parse(a),e=parse(b);while(d<=e){BOOKED.add(iso(d));d=addDays(d,1);}}
+addRange('2026-10-31','2026-11-01');
+addRange('2026-11-06','2026-11-07');
+addRange('2026-11-20','2026-11-21');
+addRange('2026-11-27','2026-11-28');
+addRange('2026-12-18','2026-12-26');
+var NUIT_SEMAINE=129, NUIT_WEEKEND=149, MENAGE=35, TAXE=1.10;
+
+var FORMULES = [
+  {id:'shoot', type:'journee', nom:'Shooting photo', duree:'2 h', prix:120, cap:'6 personnes max.', desc:'La cabane et la terrasse pour vous, lumière naturelle, accès au ponton.',
+   creneaux:[{id:'s1',l:'Matin',d:'09:00',f:'11:00'},{id:'s2',l:'Après-midi',d:'14:00',f:'16:00'},{id:'s3',l:'Heure dorée',d:'17:30',f:'19:30'}]},
+  {id:'jour', type:'journee', nom:'Journée détente', duree:'7 h', prix:190, cap:'4 personnes max.', desc:'Bain nordique chauffé, plaids, la cabane pour la journée.',
+   creneaux:[{id:'j1',l:'Journée',d:'10:00',f:'17:00'}]},
+  {id:'soir', type:'soiree', nom:'Soirée privée', duree:'5 h', prix:160, cap:'8 personnes max.', desc:'Anniversaire, demande en mariage, dîner à deux : la terrasse illuminée.',
+   creneaux:[{id:'o1',l:'Soirée',d:'18:00',f:'23:00'}]},
+  {id:'soir2', type:'soiree', nom:'Bain sous les étoiles', duree:'3 h', prix:95, cap:'2 personnes', desc:'Le bain nordique à la nuit tombée, deux peignoirs, une bouteille de cidre.',
+   creneaux:[{id:'b1',l:'Début de soirée',d:'19:00',f:'22:00'},{id:'b2',l:'Tard',d:'21:00',f:'00:00'}]}
+];
+var EXTRAS = [
+  {id:'dej', nom:'Petit-déjeuner du marais', desc:'Panier livré à la cabane : pain, confitures maison, jus pressé.', prix:14, parPers:true, nuit:true, g:'linear-gradient(150deg,#F1E3C4,#C99A5B 70%,#8A5A2B)', ic:'tasse'},
+  {id:'bain', nom:'Bain nordique chauffé', desc:'Allumé deux heures avant votre arrivée, bois fourni.', prix:45, g:'linear-gradient(170deg,#C9B79A,#7C6A55 60%,#3B2A20)', ic:'bain'},
+  {id:'pique', nom:'Panier pique-nique', desc:'Produits de la ferme voisine pour deux, à emporter en barque.', prix:32, g:'linear-gradient(160deg,#C8D1A8,#7D8F55 65%,#3F4D2A)', ic:'panier'},
+  {id:'planche', nom:'Planche apéritive', desc:'Charcuterie et fromages locaux, pour deux à quatre.', prix:38, g:'linear-gradient(150deg,#E6C9A8,#A86B45 65%,#5A2E1A)', ic:'planche'},
+  {id:'deco', nom:'Décoration romantique', desc:'Pétales, bougies LED et guirlande sur la terrasse.', prix:49, g:'linear-gradient(160deg,#E7C3BE,#A8505A 65%,#590B00)', ic:'coeur'},
+  {id:'tard', nom:'Départ tardif', desc:'Gardez la cabane jusqu’à 14 h au lieu de 11 h.', prix:20, nuit:true, g:'linear-gradient(160deg,#D9D3C3,#8E8A7E)', ic:'horloge'}
+];
+
+/* ---------------- État ---------------- */
+var S = {
+  type:'nuit', step:0, month:0, adults:2, children:0,
+  from:null, to:null, day:null, formule:null, slot:null,
+  extras:{}, qty:{}, form:{prenom:'',nom:'',email:'',tel:'',message:''},
+  cgv:false, pm:'card', sheet:false, error:'', holdEnd:null, paying:false, ref:'LA-7K3Q9', last:null
+};
+var VIEW = 'both';
+
+/* ---------------- Dates ---------------- */
+function pad(n){return (n<10?'0':'')+n}
+function iso(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function parse(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
+function addDays(d,n){return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n)}
+function nights(){return S.from&&S.to?Math.round((parse(S.to)-parse(S.from))/864e5):0}
+function nightsAllFree(a,b){var d=parse(a),e=parse(b);while(d<e){if(BOOKED.has(iso(d)))return false;d=addDays(d,1)}return true}
+var MOIS=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+var JOURS=['dim.','lun.','mar.','mer.','jeu.','ven.','sam.'];
+function fmtD(s,long){if(!s)return '';var o={day:'numeric',month:'short'};if(long)o.weekday='short';return parse(s).toLocaleDateString('fr-FR',o)}
+function fmtDay(s){var d=parse(s);return JOURS[d.getDay()]+' '+d.getDate()+' '+MOIS[d.getMonth()]}
+function eur(n){var r=Math.round(n*100)/100;return r.toLocaleString('fr-FR',{minimumFractionDigits:r%1?2:0,maximumFractionDigits:2})+' €'}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+
+/* ---------------- Devis (simule /api/direct/quote) ---------------- */
+function formule(){return FORMULES.filter(function(f){return f.id===S.formule})[0]||null}
+function slot(){var f=formule();return f?f.creneaux.filter(function(c){return c.id===S.slot})[0]||null:null}
+function extrasDispo(){return EXTRAS.filter(function(e){return S.type==='nuit'||!e.nuit})}
+function extraQty(e){return e.parPers?(S.qty[e.id]||S.adults+S.children):1}
+function quote(){
+  var lines=[], total=0;
+  if(S.type==='nuit'){
+    var n=nights();
+    if(n>0){
+      var t=0,d=parse(S.from);for(var i=0;i<n;i++){var w=d.getDay();t+=(w===5||w===6)?NUIT_WEEKEND:NUIT_SEMAINE;d=addDays(d,1)}
+      lines.push([n+' nuit'+(n>1?'s':''),t]);lines.push(['Frais de ménage',MENAGE]);lines.push(['Taxe de séjour',TAXE*S.adults*n]);
+    }
+  } else {
+    var f=formule(); if(f&&S.slot&&S.day){lines.push([f.nom+' · '+f.duree,f.prix]);}
+  }
+  var ex=[];
+  extrasDispo().forEach(function(e){if(S.extras[e.id]){var q=extraQty(e);ex.push([e.nom+(e.parPers?' × '+q:''),e.prix*q,e.id])}});
+  lines.concat(ex).forEach(function(l){total+=l[1]});
+  return {lines:lines, extras:ex, total:(lines.length?total:0), ready:lines.length>0};
+}
+
+/* ---------------- Étapes ---------------- */
+function steps(){
+  return S.type==='nuit'
+    ? [['sejour','Dates'],['extras','Extras'],['coord','Coordonnées'],['paiement','Paiement'],['ok','Confirmé']]
+    : [['sejour','Date'],['creneau','Créneau'],['extras','Extras'],['coord','Coordonnées'],['paiement','Paiement'],['ok','Confirmé']];
+}
+function cur(){return steps()[S.step][0]}
+function canGo(){
+  var c=cur();
+  if(c==='sejour')return S.type==='nuit'?nights()>0:!!S.day;
+  if(c==='creneau')return !!(S.formule&&S.slot);
+  if(c==='coord')return S.form.prenom&&S.form.nom&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(S.form.email)&&S.form.tel.replace(/\D/g,'').length>=9;
+  if(c==='paiement')return S.cgv&&!S.paying;
+  return true;
+}
+function ctaLabel(){
+  var c=cur(), q=quote();
+  if(c==='sejour')return 'Réserver';
+  if(c==='extras')return Object.keys(S.extras).some(function(k){return S.extras[k]})?'Continuer':'Continuer sans extra';
+  if(c==='coord')return 'Continuer vers le paiement';
+  if(c==='paiement')return S.paying?'Paiement en cours…':'Payer '+eur(q.total);
+  return 'Continuer';
+}
+function next(){
+  var c=cur();
+  if(!canGo()){
+    S.error = c==='sejour'?(S.type==='nuit'?'Choisissez votre arrivée puis votre départ.':'Choisissez le jour de votre venue.')
+      : c==='creneau'?'Choisissez une formule et un créneau.'
+      : c==='coord'?'Merci de renseigner prénom, nom, e-mail et téléphone.'
+      : c==='paiement'?'Merci d’accepter les conditions pour payer.':'';
+    render();return;
+  }
+  S.error='';S.sheet=false;
+  if(c==='paiement'){S.paying=true;render();setTimeout(function(){S.paying=false;S.step=steps().length-1;render();},1100);return;}
+  S.step=Math.min(S.step+1,steps().length-1);
+  if(cur()==='paiement'&&!S.holdEnd)S.holdEnd=Date.now()+15*60*1000;
+  scrollTop();render();
+}
+function back(){S.error='';if(S.step>0){S.step--;scrollTop();render();}}
+function scrollTop(){['f-desk','f-mob'].forEach(function(id){var f=document.getElementById(id);if(f)f.scrollTop=0});}
+
+/* ---------------- Petits rendus ---------------- */
+var ICONS={
+  cabane:'<path d="M60 130 L100 88 L140 130 Z M70 130 V165 H130 V130" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2"/><path d="M100 165 V200 M80 200 H120" stroke="rgba(255,255,255,.4)" stroke-width="2"/>',
+  bain:'<ellipse cx="100" cy="135" rx="45" ry="14" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2"/><path d="M55 135 V160 Q100 180 145 160 V135" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2"/><path d="M88 110 q6 -10 0 -20 M102 110 q6 -10 0 -20" stroke="rgba(255,255,255,.4)" fill="none" stroke-width="2"/>',
+  lit:'<rect x="55" y="130" width="90" height="26" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2"/><path d="M55 156 V166 M145 156 V166 M62 130 V118 H92 V130" stroke="rgba(255,255,255,.5)" fill="none" stroke-width="2"/>',
+  marais:'<path d="M20 150 Q60 140 100 150 T180 150" stroke="rgba(255,255,255,.5)" fill="none" stroke-width="2"/><path d="M60 150 V110 M66 150 V118 M130 150 V105 M136 150 V115" stroke="rgba(255,255,255,.45)" stroke-width="2"/>',
+  poele:'<rect x="80" y="120" width="40" height="40" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2"/><path d="M100 120 V80 M92 150 q8 -16 16 0" stroke="rgba(255,255,255,.5)" fill="none" stroke-width="2"/>',
+  tasse:'<path d="M80 120 H120 V145 Q100 160 80 145 Z M120 125 q12 2 0 14" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2"/>',
+  panier:'<path d="M70 125 H130 L122 158 H78 Z M82 125 Q100 95 118 125" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2"/>',
+  planche:'<rect x="65" y="128" width="70" height="22" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2"/><circle cx="85" cy="122" r="6" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="2"/><circle cx="110" cy="122" r="5" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="2"/>',
+  coeur:'<path d="M100 155 L75 130 a14 14 0 0 1 25 -16 a14 14 0 0 1 25 16 Z" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="2"/>',
+  horloge:'<circle cx="100" cy="135" r="24" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="2"/><path d="M100 135 V120 M100 135 H112" stroke="rgba(255,255,255,.75)" stroke-width="2"/>'
+};
+function art(k){return '<svg viewBox="0 0 200 250" preserveAspectRatio="xMidYMid slice" aria-hidden="true">'+(ICONS[k]||'')+'</svg>'}
+
+function stepper(){
+  var st=steps(), h='<div class="stepper" aria-label="Étapes">';
+  st.slice(0,-1).forEach(function(s,i){
+    if(i)h+='<span class="st-line'+(i<=S.step?' done':'')+'"></span>';
+    var cls=i<S.step?'done':i===S.step?'on':'';
+    h+='<span class="st '+cls+'"><i>'+(i<S.step?'✓':i+1)+'</i><span>'+s[1]+'</span></span>';
+  });
+  return h+'</div>';
+}
+
+function gallery(){
+  var h='<div style="position:relative"><span class="gal-count">1 / '+PHOTOS.length+'</span><div class="gal">';
+  PHOTOS.forEach(function(p){h+='<div class="ph" style="--g:'+p[1]+'" data-cap="'+p[0]+'">'+art(p[2])+'</div>'});
+  return h+'</div></div>';
+}
+
+function calMonth(offset, cls){
+  var base=new Date(TODAY.getFullYear(),TODAY.getMonth()+offset,1);
+  var y=base.getFullYear(),m=base.getMonth();
+  var first=(base.getDay()+6)%7, dim=new Date(y,m+1,0).getDate();
+  var h='<div class="'+(cls||'')+'"><div class="cal-nav">';
+  h+= cls==='cal-2' ? '<span style="width:40px"></span>' : '<button data-act="mprev" aria-label="Mois précédent"'+(S.month<=0?' disabled':'')+'>‹</button>';
+  h+='<span class="cal-month">'+MOIS[m]+' '+y+'</span>';
+  h+= '<button data-act="mnext" aria-label="Mois suivant" class="'+(cls==='cal-2'?'':'nx1')+'"'+(S.month>=10?' disabled':'')+'>›</button>';
+  h+='</div><div class="cal-grid">';
+  ['LU','MA','ME','JE','VE','SA','DI'].forEach(function(w){h+='<span class="cal-wd">'+w+'</span>'});
+  for(var i=0;i<first;i++)h+='<span></span>';
+  var pickingOut = S.type==='nuit' && S.from && !S.to;
+  for(var d=1;d<=dim;d++){
+    var dt=new Date(y,m,d), k=iso(dt), past=dt<TODAY, dis=past, c='day';
+    if(S.type==='nuit'){
+      if(!past){
+        if(pickingOut && k>S.from) dis=!nightsAllFree(S.from,k);
+        else dis=BOOKED.has(k);
+      }
+      var half=BOOKED.has(k)&&!BOOKED.has(iso(addDays(dt,-1)))&&!past;
+      if(half)c+=' half';
+      if(k===S.from||k===S.to)c+=' sel';
+      else if(S.from&&S.to&&k>S.from&&k<S.to)c+=' mid';
+    } else {
+      // journée : un jour pendant un séjour est fermé ; délai minimum 24 h
+      dis = past || dt<=TODAY || (BOOKED.has(k)&&BOOKED.has(iso(addDays(dt,-1))));
+      if(k===S.day)c+=' sel';
+    }
+    if(k===iso(TODAY))c+=' today';
+    h+='<button class="'+c+'" data-act="day" data-d="'+k+'"'+(dis?' disabled':'')+' aria-label="'+fmtDay(k)+'">'+d+'</button>';
+  }
+  return h+'</div></div>';
+}
+
+function calendar(){
+  var h='<div class="card"><div class="cal-wrap">'+calMonth(S.month,'cal-1')+calMonth(S.month+1,'cal-2')+'</div><div class="cal-foot">';
+  if(S.type==='nuit')h+='<p class="legend" style="margin:0"><span class="sw"></span>Jour à demi teinté : la nuit est déjà réservée, mais vous pouvez repartir ce jour-là.</p>';
+  else h+='<p class="legend" style="margin:0">Les jours barrés sont pris par un séjour. Réservation au plus tard la veille.</p>';
+  if(S.from||S.day)h+='<button class="ghost" data-act="clear">✕ Annuler la sélection</button>';
+  h+='</div>';
+  if(S.type==='nuit'&&S.from){
+    h+='<p class="sel-line">'+(S.to?fmtD(S.from,true)+' → '+fmtD(S.to,true)+' · '+nights()+' nuit'+(nights()>1?'s':''):'Arrivée '+fmtD(S.from,true)+' · choisissez le départ')+'</p>';
+    if(S.to)h+='<p class="avail">● Disponible · tarif vérifié en direct</p>';
+  }
+  if(S.type!=='nuit'&&S.day)h+='<p class="sel-line">'+fmtDay(S.day)+'</p>';
+  return h+'</div>';
+}
+
+function guests(){
+  var mk=function(k,l,s,min,max){var v=S[k];return '<div class="g-row"><span>'+l+'<small>'+s+'</small></span><span class="stp"><button data-act="g" data-k="'+k+'" data-d="-1" aria-label="Moins"'+(v<=min?' disabled':'')+'>−</button><output>'+v+'</output><button data-act="g" data-k="'+k+'" data-d="1" aria-label="Plus"'+(S.adults+S.children>=max?' disabled':'')+'>+</button></span></div>'};
+  var max=S.type==='nuit'?4:(formule()?parseInt(formule().cap,10)||8:8);
+  return '<div class="card guests">'+mk('adults','Adultes','13 ans et plus',1,max)+mk('children','Enfants','2 à 12 ans',0,max)+'</div>';
+}
+
+/* ---------------- Écrans ---------------- */
+function scrSejour(){
+  var h=gallery();
+  h+='<div class="sec" style="margin-top:18px"><p class="kicker">'+LOG.type+' · '+LOG.lieu+'</p><h1 class="h1">'+LOG.nom+'</h1>';
+  h+='<div class="facts"><span>'+LOG.capacite+'</span><span>Hôte : '+LOG.hote+'</span></div>';
+  h+='<p class="lead">'+LOG.desc+'</p><div class="badges"><span class="badge">Bain nordique</span><span class="badge">Poêle à bois</span><span class="badge">Vue marais</span><span class="badge">Sans voisin</span></div></div>';
+  h+='<div class="sec"><div class="sec-title"><h3>Type de séjour</h3></div><div class="types" role="group" aria-label="Type de séjour">';
+  [['nuit','Nuit','dès 1 nuit'],['journee','Journée','shooting, détente'],['soiree','Soirée','fête, bain']].forEach(function(t){
+    h+='<button data-act="type" data-t="'+t[0]+'" aria-pressed="'+(S.type===t[0])+'"><b>'+t[1]+'</b><small>'+t[2]+'</small></button>'});
+  h+='</div></div>';
+  h+='<div class="sec"><div class="sec-title"><h3>'+(S.type==='nuit'?'Vos dates':'Le jour de votre venue')+'</h3></div>'+calendar()+'</div>';
+  h+='<div class="sec"><div class="sec-title"><h3>Voyageurs</h3></div>'+guests()+'</div>';
+  return h;
+}
+function scrCreneau(){
+  var h='<p class="kicker">'+fmtDay(S.day)+'</p><h2 class="h2">'+(S.type==='soiree'?'Choisissez votre soirée':'Choisissez votre formule')+'</h2><p class="lead">Formules proposées par '+LOG.hote+'. Seuls les créneaux encore libres ce jour-là sont affichés.</p><div class="formules sec" style="margin-top:16px">';
+  FORMULES.filter(function(f){return f.type===S.type}).forEach(function(f){
+    var on=S.formule===f.id;
+    h+='<div class="formule" aria-pressed="'+on+'" role="group"><button data-act="formule" data-f="'+f.id+'" style="all:unset;cursor:pointer;display:grid;gap:6px"><span class="top"><b>'+f.nom+'</b><span class="price">'+eur(f.prix)+'</span></span><span class="small muted">'+f.duree+' · '+f.cap+'</span><span class="small">'+f.desc+'</span></button>';
+    h+='<div class="slots" role="group" aria-label="Créneaux">';
+    f.creneaux.forEach(function(c){h+='<button class="slot" data-act="slot" data-f="'+f.id+'" data-s="'+c.id+'" aria-pressed="'+(on&&S.slot===c.id)+'">'+c.d+' → '+c.f+'<small>'+c.l+'</small></button>'});
+    h+='</div></div>';
+  });
+  return h+'</div>';
+}
+function scrExtras(){
+  var h='<p class="kicker">Facultatif</p><h2 class="h2">Pour rendre le séjour inoubliable</h2><p class="lead">Touchez un extra pour l’ajouter, il apparaît aussitôt dans votre récapitulatif.</p><div class="extras sec" style="margin-top:16px">';
+  extrasDispo().forEach(function(e){
+    var on=!!S.extras[e.id], q=extraQty(e);
+    h+='<div class="extra" role="button" tabindex="0" data-act="extra" data-e="'+e.id+'" aria-pressed="'+on+'"><div class="img" style="--g:'+e.g+'">'+art(e.ic)+'<span class="box">'+(on?'✓':'')+'</span></div><div class="body"><div class="row"><span class="name">'+e.nom+'</span><span class="price">'+(e.parPers&&!on?eur(e.prix)+'/pers.':eur(e.prix*q))+'</span></div><span class="desc">'+e.desc+'</span>';
+    if(e.parPers&&on)h+='<span class="qty">Pour <span class="stp"><button data-act="q" data-e="'+e.id+'" data-d="-1"'+(q<=1?' disabled':'')+' aria-label="Moins">−</button><output>'+q+'</output><button data-act="q" data-e="'+e.id+'" data-d="1"'+(q>=8?' disabled':'')+' aria-label="Plus">+</button></span> personne'+(q>1?'s':'')+'</span>';
+    h+='</div></div>';
+  });
+  h+='</div>';
+  if(S.type!=='nuit')h+='<p class="small muted" style="margin-top:10px">Petit-déjeuner et départ tardif sont réservés aux nuits.</p>';
+  return h;
+}
+function field(k,l,type,req,full,hint,ac){
+  return '<div class="f'+(full?' full':'')+'"><label for="'+k+'-%ID%">'+l+(req?'<em>*</em>':'')+'</label>'+
+    (type==='area'?'<textarea id="'+k+'-%ID%" data-field="'+k+'" placeholder="Heure d’arrivée prévue, occasion spéciale, question pour '+LOG.hote+'…">'+esc(S.form[k])+'</textarea>'
+    :'<input id="'+k+'-%ID%" type="'+type+'" data-field="'+k+'" value="'+esc(S.form[k])+'"'+(ac?' autocomplete="'+ac+'"':'')+(type==='tel'?' placeholder="+33 6 12 34 56 78"':'')+'>')+
+    (hint?'<p class="hint">'+hint+'</p>':'')+'</div>';
+}
+function scrCoord(){
+  var h='<p class="kicker">Vos coordonnées</p><h2 class="h2">Qui vient profiter de la cabane ?</h2><p class="lead">'+LOG.hote+' les reçoit avec votre réservation pour préparer votre arrivée.</p><div class="fields sec" style="margin-top:16px">';
+  h+=field('prenom','Prénom','text',1,0,'','given-name')+field('nom','Nom','text',1,0,'','family-name')+field('email','E-mail','email',1,0,'La confirmation arrive à cette adresse.','email')+field('tel','Téléphone','tel',1,0,'Pour un numéro étranger, indiquez le pays avec + ou 00.','tel')+field('message','Un message pour '+LOG.hote+' ?','area',0,1);
+  return h+'</div>';
+}
+function scrPaiement(){
+  var q=quote(), left=S.holdEnd?Math.max(0,S.holdEnd-Date.now()):900000;
+  var h='<div class="hold'+(left<120000?' late':'')+'"><span class="clock" data-timer>'+clock(left)+'</span><p><strong style="color:var(--la-ink)">Vos dates sont gardées pour vous.</strong><br>Personne d’autre ne peut les réserver pendant ce temps.</p></div>';
+  h+='<p class="kicker">Paiement</p><h2 class="h2">Paiement sécurisé</h2><p class="lead">Vous payez '+eur(q.total)+' maintenant, directement à '+LOG.hote+'. Reçu envoyé par e-mail.</p>';
+  h+='<div class="pe sec" style="margin-top:16px" aria-label="Moyen de paiement (simulation Stripe Payment Element)"><div class="pe-tabs">';
+  [['card','Carte','Visa, CB, Mastercard'],['apple','Apple Pay','ou Google Pay'],['link','Link','1 clic']].forEach(function(p){h+='<button class="pe-tab" data-act="pm" data-p="'+p[0]+'" aria-pressed="'+(S.pm===p[0])+'">'+p[1]+'<small>'+p[2]+'</small></button>'});
+  h+='</div>';
+  if(S.pm==='card'){
+    h+='<div class="f"><label>Numéro de carte</label><input inputmode="numeric" placeholder="1234 1234 1234 1234" autocomplete="cc-number"></div>';
+    h+='<div class="pe-row"><div class="f"><label>Expiration</label><input placeholder="MM / AA" autocomplete="cc-exp"></div><div class="f"><label>Code de sécurité</label><input placeholder="CVC" autocomplete="cc-csc"></div></div>';
+    h+='<div class="f" style="margin-top:12px"><label>Pays</label><input value="France"></div>';
+  } else h+='<p class="small muted" style="margin:6px 0">Le bouton '+(S.pm==='apple'?'Apple Pay':'Link')+' s’ouvre au moment de payer.</p>';
+  h+='<p class="pe-note">Bloc fourni par Stripe (Payment Element), aux couleurs de LA par l’option appearance.</p></div>';
+  h+='<label class="cgv"><input type="checkbox" data-act="cgv"'+(S.cgv?' checked':'')+'><span>J’ai lu et j’accepte les <a href="#" onclick="return false">conditions de l’hôte</a>, dont les conditions d’annulation.</span></label>';
+  return h;
+}
+function clock(ms){var s=Math.ceil(ms/1000);return pad(Math.floor(s/60))+':'+pad(s%60)}
+function scrOk(){
+  var q=quote(), f=formule(), sl=slot();
+  var h='<div style="max-width:620px"><div class="done-ico">✓</div><p class="kicker">Réservation confirmée</p><h2 class="h1">À très vite à '+LOG.nom+', '+esc(S.form.prenom||'Camille')+'.</h2>';
+  h+='<p class="lead">Un e-mail de confirmation vient de partir à <strong>'+esc(S.form.email||'camille@exemple.fr')+'</strong>. '+LOG.hote+' a reçu votre réservation.</p><p class="ref">RÉFÉRENCE '+S.ref+'</p>';
+  h+='<div class="card sec recap">'+recapInner(true)+'</div>';
+  h+='<div class="next"><div><i>1</i><span>Vos dates sont déjà bloquées partout : personne ne peut réserver la cabane sur une autre plateforme.</span></div><div><i>2</i><span>'+LOG.hote+' vous envoie l’adresse exacte et l’accès avant votre arrivée <span class="fake-tag">délai à confirmer</span></span></div><div><i>3</i><span>Une question ? Répondez simplement à l’e-mail de confirmation.</span></div></div>';
+  h+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:22px"><button class="btn" data-act="mails">Voir les deux e-mails</button><button class="btn line" data-act="restart">Recommencer</button></div></div>';
+  return h;
+}
+
+/* ---------------- Récap ---------------- */
+function recapInner(final){
+  var q=quote(), f=formule(), sl=slot(), h='';
+  h+='<div class="r-thumb"><div class="ph" style="--g:'+PHOTOS[0][1]+'">'+art('cabane')+'</div><div><h4>'+LOG.nom+'</h4><span class="small muted">'+LOG.type+' · Brière</span></div></div>';
+  h+='<div class="r-block">';
+  if(S.type==='nuit'){
+    h+='<div class="r-row"><span>Arrivée</span><span>'+(S.from?fmtD(S.from,true)+' · dès 16 h':'·')+'</span></div><div class="r-row"><span>Départ</span><span>'+(S.to?fmtD(S.to,true)+' · avant '+(S.extras.tard?'14':'11')+' h':'·')+'</span></div>';
+  } else {
+    h+='<div class="r-row"><span>Jour</span><span>'+(S.day?fmtD(S.day,true):'·')+'</span></div><div class="r-row"><span>Formule</span><span>'+(f?f.nom:'·')+'</span></div><div class="r-row"><span>Créneau</span><span>'+(sl?sl.d+' → '+sl.f:'·')+'</span></div>';
+  }
+  h+='<div class="r-row"><span>Voyageurs</span><span>'+S.adults+' adulte'+(S.adults>1?'s':'')+(S.children?', '+S.children+' enfant'+(S.children>1?'s':''):'')+'</span></div></div>';
+  if(q.lines.length){
+    h+='<div class="r-block">';q.lines.forEach(function(l){h+='<div class="r-row"><span>'+l[0]+'</span><span>'+eur(l[1])+'</span></div>'});h+='</div>';
+  } else h+='<div class="r-block"><div class="r-row"><span>Tarif</span><span>'+(S.type==='nuit'?'Choisissez vos dates':'Choisissez un créneau')+'</span></div></div>';
+  if(q.extras.length){
+    h+='<div class="r-block"><span class="r-cap">Extras</span>';
+    q.extras.forEach(function(l){h+='<div class="r-row'+(S.last===l[2]?' new':'')+'"><span>'+l[0]+'</span><span>'+eur(l[1])+'</span></div>'});h+='</div>';
+  }
+  h+='<div class="r-total"><span>'+(final?'Payé':'Total')+'</span><strong>'+(q.ready?eur(q.total):'·')+'</strong></div>';
+  if(q.ready&&!final)h+='<span class="r-live">Tarif vérifié en direct</span>';
+  if(!final)h+='<p class="r-foot">Aucun frais de réservation · annulation selon les conditions de l’hôte</p>';
+  return h;
+}
+function aside(){
+  var c=cur(), h='<aside class="aside"><div class="card recap">'+recapInner(false);
+  if(c!=='paiement')h+='<button class="btn block" style="margin-top:16px" data-act="next"'+(c==='sejour'&&!canGo()?' disabled':'')+'>'+ctaLabel()+'</button>';
+  return h+'</div></aside>';
+}
+function mbar(){
+  var q=quote(), c=cur(), sub;
+  if(S.type==='nuit')sub=nights()?nights()+' nuit'+(nights()>1?'s':'')+' · '+fmtD(S.from)+' → '+fmtD(S.to):'Choisissez vos dates';
+  else sub=S.day?(slot()?formule().nom+' · '+slot().d:fmtD(S.day,true)):'Choisissez un jour';
+  var h='<div class="mbar">';
+  if(S.sheet)h+='<div class="mbar-sheet">'+recapInner(false)+'</div>';
+  h+='<div class="mbar-row"><button class="mbar-sum" data-act="sheet" aria-expanded="'+S.sheet+'"><strong>'+(q.ready?eur(q.total):'Prix sur vos dates')+'</strong><small>'+(q.ready?(S.sheet?'Masquer le détail':'Voir le détail · '+sub):sub)+'</small></button>';
+  h+='<button class="btn" data-act="next"'+(S.paying?' disabled':'')+'>'+(c==='paiement'?(S.paying?'Paiement…':'Payer'):c==='sejour'?'Réserver':'Continuer')+'</button></div></div>';
+  return h;
+}
+
+function tunnel(id){
+  var c=cur(), body;
+  body = c==='sejour'?scrSejour():c==='creneau'?scrCreneau():c==='extras'?scrExtras():c==='coord'?scrCoord():c==='paiement'?scrPaiement():scrOk();
+  var h='<div class="t"><header class="t-head">'+(S.step>0&&c!=='ok'?'<button class="back" data-act="back">‹ Retour</button>':'<span class="back"></span>')+'<span class="wordmark">LOGEMENT ATYPIQUE<small>RÉSERVATION DIRECTE</small></span><span style="width:52px"></span></header><div class="t-main">';
+  if(c!=='sejour'&&c!=='ok')h+=stepper();
+  if(c==='ok'){h+=body;}
+  else{
+    h+='<div class="layout"><div>'+body;
+    if(S.error)h+='<p class="err" role="alert">'+S.error+'</p>';
+    if(c!=='sejour'){
+      h+='<div class="actions"><button class="btn line" data-act="back">‹ Retour</button><button class="btn" style="flex:1" data-act="next"'+(S.paying?' disabled':'')+'>'+ctaLabel()+'</button></div>';
+    }
+    if(c==='paiement')h+='<p class="powered"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="10" height="7"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></svg>Paiement sécurisé · Powered by BedLink</p>';
+    h+='</div>'+aside()+'</div>';
+  }
+  h+='</div>';
+  if(c!=='ok')h+=mbar();
+  h+='</div>';
+  return h.replace(/%ID%/g,id);
+}
+
+/* ---------------- E-mails ---------------- */
+function mails(){
+  var q=quote(), f=formule(), sl=slot(), p=esc(S.form.prenom||'Camille'), n=esc(S.form.nom||'Martin');
+  var quand = S.type==='nuit'?(fmtDay(S.from||'2026-11-13')+' → '+fmtDay(S.to||'2026-11-15')):(fmtDay(S.day)+' · '+(sl?sl.d+' → '+sl.f:''));
+  var rows=''; q.lines.concat(q.extras).forEach(function(l){rows+='<tr><td>'+l[0]+'</td><td>'+eur(l[1])+'</td></tr>'});
+  var g='<div class="mail-wrap"><p class="dev-label">E-mail au voyageur</p><div class="mail-meta"><b>De :</b> Logement Atypique &lt;reservations@logement-atypique.fr&gt; <span class="fake-tag">adresse à confirmer</span><br><b>Objet :</b> Réservation confirmée · '+LOG.nom+' · '+quand+'</div><div class="mail"><div class="m">';
+  g+='<div class="m-band"><span class="wordmark">LOGEMENT ATYPIQUE<small>RÉSERVATION DIRECTE</small></span></div><div class="m-hero" style="--g:'+PHOTOS[0][1]+'"></div><div class="m-body">';
+  g+='<p class="m-k">Réservation confirmée · '+S.ref+'</p><h1>Bonjour '+p+', la cabane vous attend.</h1><p>Votre réservation à <strong>'+LOG.nom+'</strong> est confirmée et payée. '+LOG.hote+', votre hôte, l’a bien reçue.</p>';
+  g+='<table class="m-table"><tr><td>'+(S.type==='nuit'?'Séjour':'Venue')+'</td><td>'+quand+'</td></tr>'+(f?'<tr><td>Formule</td><td>'+f.nom+'</td></tr>':'')+'<tr><td>Voyageurs</td><td>'+S.adults+' adulte'+(S.adults>1?'s':'')+(S.children?', '+S.children+' enfant'+(S.children>1?'s':''):'')+'</td></tr>'+rows+'<tr class="tot"><td>Total payé</td><td>'+eur(q.total)+'</td></tr></table>';
+  g+='<div class="m-box"><strong>Et maintenant ?</strong><br>'+LOG.hote+' vous enverra l’adresse exacte et les instructions d’accès avant votre arrivée. Une question ? Répondez à cet e-mail.</div>';
+  g+='<p style="text-align:center;margin:22px 0 6px"><a class="m-btn" href="#" onclick="return false">Voir ma réservation</a></p></div>';
+  g+='<div class="m-foot">Logement Atypique · cabanes, phares, péniches sélectionnés à la main<br>Conditions d’annulation de l’hôte · Contacter '+LOG.hote+'</div></div></div></div>';
+
+  var hte='<div class="mail-wrap"><p class="dev-label">E-mail à l’hôte</p><div class="mail-meta"><b>De :</b> Logement Atypique<br><b>Objet :</b> Nouvelle réservation · '+p+' '+n+' · '+quand+'</div><div class="mail"><div class="m">';
+  hte+='<div class="m-band"><span class="wordmark">LOGEMENT ATYPIQUE<small>ESPACE HÔTE</small></span></div><div class="m-body">';
+  hte+='<p class="m-k">Nouvelle réservation · '+S.ref+'</p><h1>'+eur(q.total)+' encaissés pour '+LOG.nom+'.</h1><p>'+p+' '+n+' vient de réserver et de payer sur Logement Atypique. L’argent arrive sur votre compte Stripe.</p>';
+  hte+='<table class="m-table"><tr><td>'+(S.type==='nuit'?'Séjour':'Venue')+'</td><td>'+quand+'</td></tr>'+(f?'<tr><td>Formule</td><td>'+f.nom+'</td></tr>':'')+'<tr><td>Voyageur</td><td>'+p+' '+n+'<br>'+esc(S.form.email||'camille@exemple.fr')+'<br>'+esc(S.form.tel||'+33 6 12 34 56 78')+'</td></tr>'+(S.form.message?'<tr><td>Message</td><td>'+esc(S.form.message)+'</td></tr>':'')+'<tr><td>Extras à préparer</td><td>'+(q.extras.length?q.extras.map(function(e){return e[0]}).join('<br>'):'Aucun')+'</td></tr><tr class="tot"><td>Total</td><td>'+eur(q.total)+'</td></tr></table>';
+  hte+='<div class="m-box">✓ Dates déjà fermées sur Airbnb, Booking et vos autres canaux.</div>';
+  hte+='<p style="text-align:center;margin:22px 0 6px"><a class="m-btn" href="#" onclick="return false">Ouvrir dans BedLink</a></p></div>';
+  hte+='<div class="m-foot">Vous recevez cet e-mail car '+LOG.nom+' est réservable sur Logement Atypique.</div></div></div></div>';
+  return g+hte;
+}
+
+/* ---------------- Rendu ---------------- */
+var screen = null; // null = tunnel, 'mails'
+function render(){
+  var d=document.getElementById('f-desk'), m=document.getElementById('f-mob');
+  var sd=d.scrollTop, sm=m.scrollTop;
+  d.innerHTML=tunnel('d'); m.innerHTML=tunnel('m');
+  d.scrollTop=sd; m.scrollTop=sm;
+  var mailsEl=document.getElementById('mails'), stage=document.getElementById('stage');
+  if(screen==='mails'){mailsEl.hidden=false;mailsEl.innerHTML=mails();stage.hidden=true}else{mailsEl.hidden=true;stage.hidden=false}
+  renderChips(); S.last=null;
+}
+var CHIPS=[['a','Fiche & dates'],['b','Créneau (journée)'],['c','Extras'],['d','Coordonnées'],['e','Paiement'],['f','Confirmation'],['g','Les deux e-mails']];
+function activeChip(){
+  if(screen==='mails')return 'g';
+  var c=cur();return {sejour:'a',creneau:'b',extras:'c',coord:'d',paiement:'e',ok:'f'}[c];
+}
+function renderChips(){
+  var a=activeChip(),h='';
+  CHIPS.forEach(function(c){h+='<button class="chip" data-chip="'+c[0]+'" aria-current="'+(a===c[0])+'"><b>'+c[0].toUpperCase()+'</b>'+c[1]+'</button>'});
+  document.getElementById('screens').innerHTML=h;
+}
+function demoFill(){
+  if(S.type==='nuit'&&!nights()){S.from='2026-11-13';S.to='2026-11-15';S.month=1;}
+  if(S.type!=='nuit'){if(!S.day)S.day='2026-11-12';var f=FORMULES.filter(function(x){return x.type===S.type})[0];if(!S.formule){S.formule=f.id;S.slot=f.creneaux[f.creneaux.length-1].id}}
+  if(!S.form.prenom)S.form={prenom:'Camille',nom:'Martin',email:'camille@exemple.fr',tel:'+33 6 12 34 56 78',message:'Nous arriverons vers 18 h, c’est pour un anniversaire.'};
+}
+function goChip(k){
+  screen=null;S.error='';S.sheet=false;S.paying=false;
+  if(k==='b'){if(S.type==='nuit'){S.type='journee';S.formule=null;S.slot=null;S.extras={}}}
+  if(k!=='a')demoFill();
+  var id={a:'sejour',b:'creneau',c:'extras',d:'coord',e:'paiement',f:'ok'}[k];
+  if(k==='g'){demoFill();screen='mails';}
+  else{var i=steps().map(function(s){return s[0]}).indexOf(id);S.step=i<0?0:i;if(id==='paiement'&&!S.holdEnd)S.holdEnd=Date.now()+15*60*1000;if(id==='ok'||id==='paiement')S.cgv=id==='ok'||S.cgv;}
+  scrollTop();render();
+  if(k==='g')window.scrollTo({top:0});
+}
+
+/* ---------------- Événements ---------------- */
+document.addEventListener('click',function(ev){
+  var chip=ev.target.closest('[data-chip]'); if(chip){goChip(chip.getAttribute('data-chip'));return;}
+  var ws=ev.target.closest('[data-ws]');
+  if(ws){var v=ws.getAttribute('data-v');
+    if(ws.getAttribute('data-ws')==='view'){VIEW=v;setView()}
+    else{if(v==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',v);setPressed('theme',v)}
+    return;}
+  var el=ev.target.closest('[data-act]'); if(!el||el.disabled)return;
+  var a=el.getAttribute('data-act');
+  if(a==='cgv'){S.cgv=el.checked;S.error='';render();return;}
+  if(a==='q'){ev.stopPropagation();var e=el.getAttribute('data-e'),ex=EXTRAS.filter(function(x){return x.id===e})[0];S.qty[e]=Math.max(1,Math.min(8,extraQty(ex)+(+el.getAttribute('data-d'))));S.last=e;render();return;}
+  switch(a){
+    case 'next': next(); return;
+    case 'back': back(); return;
+    case 'type': var t=el.getAttribute('data-t'); if(t!==S.type){S.type=t;S.from=S.to=S.day=null;S.formule=S.slot=null;S.extras={};S.step=0;} break;
+    case 'mprev': S.month=Math.max(0,S.month-1); break;
+    case 'mnext': S.month=Math.min(10,S.month+1); break;
+    case 'clear': S.from=S.to=S.day=null; break;
+    case 'day':
+      var k=el.getAttribute('data-d');
+      if(S.type==='nuit'){
+        if(!S.from||S.to||k<=S.from){S.from=k;S.to=null;}
+        else if(nightsAllFree(S.from,k))S.to=k;
+      } else {S.day=k;}
+      S.error=''; break;
+    case 'g': var key=el.getAttribute('data-k'); S[key]=Math.max(key==='adults'?1:0,S[key]+(+el.getAttribute('data-d'))); break;
+    case 'formule': var fid=el.getAttribute('data-f'); if(S.formule!==fid){S.formule=fid;var ff=formule();S.slot=ff.creneaux.length===1?ff.creneaux[0].id:null;} S.error=''; break;
+    case 'slot': S.formule=el.getAttribute('data-f');S.slot=el.getAttribute('data-s');S.error=''; break;
+    case 'extra': var x=el.getAttribute('data-e');S.extras[x]=!S.extras[x];if(S.extras[x])S.last=x; break;
+    case 'pm': S.pm=el.getAttribute('data-p'); break;
+    case 'sheet': S.sheet=!S.sheet; break;
+    case 'mails': screen='mails'; render(); window.scrollTo({top:0}); return;
+    case 'restart': S.step=0;S.from=S.to=S.day=null;S.formule=S.slot=null;S.extras={};S.qty={};S.cgv=false;S.holdEnd=null;S.type='nuit';scrollTop(); break;
+  }
+  render();
+});
+document.addEventListener('keydown',function(ev){
+  var el=ev.target.closest&&ev.target.closest('.extra[data-act]');
+  if(el&&(ev.key==='Enter'||ev.key===' ')){ev.preventDefault();el.click();}
+});
+document.addEventListener('input',function(ev){
+  var k=ev.target.getAttribute&&ev.target.getAttribute('data-field'); if(!k)return;
+  S.form[k]=ev.target.value; S.error='';
+  document.querySelectorAll('[data-field="'+k+'"]').forEach(function(o){if(o!==ev.target)o.value=ev.target.value});
+});
+setInterval(function(){
+  if(!S.holdEnd)return;
+  var left=Math.max(0,S.holdEnd-Date.now());
+  document.querySelectorAll('[data-timer]').forEach(function(t){t.textContent=clock(left);var b=t.parentNode;if(left<120000)b.classList.add('late')});
+},1000);
+
+function setPressed(group,v){document.querySelectorAll('[data-ws="'+group+'"]').forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-v')===v))})}
+function setView(){var st=document.getElementById('stage');st.className='ws-stage '+VIEW;setPressed('view',VIEW)}
+
+VIEW = window.innerWidth>=1380?'both':'desk';
+setView(); setPressed('theme','auto');
+render();
+})();
+</script>
+</body>
+</html>
