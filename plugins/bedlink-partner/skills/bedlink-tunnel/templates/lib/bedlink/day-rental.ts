@@ -1,6 +1,6 @@
 import { bedlinkConfig } from "@/lib/bedlink/config";
 import { BedlinkError, FeatureUnavailableError } from "@/lib/bedlink/client";
-import type { Guest } from "@/lib/bedlink/types";
+import type { ExtraLine, ExtraRequest, Guest } from "@/lib/bedlink/types";
 
 // Day rental (formules and slots) of the BedLink Partner API, server side only.
 // Opened per partner with the "formules" whitelist (sandbox for Logement
@@ -48,7 +48,11 @@ export type SlotQuote = {
   available: boolean;
   startAt: string | null;
   endAt: string | null;
+  /** Slot + extras: the amount charged. */
   totalCents: number;
+  slotCents?: number;
+  extrasCents?: number;
+  extras?: ExtraLine[];
   currency: string;
   nightIncluded: boolean;
 };
@@ -68,7 +72,10 @@ export type SlotReservation = {
   externalId: string;
   guests: number;
   guest: Guest;
+  /** Slot + extras. */
   totalCents: number;
+  extrasCents?: number;
+  extras?: ExtraLine[];
   currency: string;
   payment: {
     id: string;
@@ -123,7 +130,7 @@ export const dayRental = {
     request<{ slots: FreeSlot[] }>(`/properties/${enc(propertyId)}/creneaux?from=${from}&to=${to}`).then((r) => r.slots),
 
   /** Price and availability of one slot. Nothing is held. */
-  quote: (input: { propertyId: string; formuleId: string; slotId: string; date: string; guests: number }) =>
+  quote: (input: { propertyId: string; formuleId: string; slotId: string; date: string; guests: number; extras?: ExtraRequest[] }) =>
     request<SlotQuote>("/creneaux/quotes", { method: "POST", body: input }),
 
   /**
@@ -141,6 +148,8 @@ export const dayRental = {
     guest: Guest;
     notes?: string;
     payment?: { returnUrl: string; cancelUrl?: string };
+    /** Paid online with the slot (31/10/2026): BedLink prices them. */
+    extras?: ExtraRequest[];
   }) => request<SlotReservation>("/creneaux/reservations", { method: "POST", body: input }),
 
   get: (id: string) => request<SlotReservation>(`/creneaux/reservations/${enc(id)}`),

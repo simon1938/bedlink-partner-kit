@@ -10,9 +10,11 @@ import { bedlink, BedlinkError, FeatureUnavailableError } from "@/lib/bedlink/cl
 import { hasFeature } from "@/lib/bedlink/config";
 import { store as bedlinkStore } from "@/lib/bedlink/store";
 import { dayRental, SLOTS_MAX_DAYS } from "@/lib/bedlink/day-rental";
-import { addDays, daysBetween, formatMoney } from "@/components/tunnel/format";
+import { addDays, daysBetween } from "@/components/tunnel/format";
+import { extrasFor, priceSelection } from "@/components/tunnel/extras";
 import type {
   ActionResult,
+  Extra,
   BookingState,
   Formule,
   FreeSlot,
@@ -25,7 +27,7 @@ import type {
 import { getListing } from "@/lib/tunnel/config";
 import { confirmAndNotify, returnUrlFor } from "@/lib/tunnel/notify";
 import { refreshBooking } from "@/lib/tunnel/status";
-import { tunnelStore } from "@/lib/tunnel/store";
+import { tunnelStore, type TunnelExtra } from "@/lib/tunnel/store";
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -121,14 +123,29 @@ export async function quoteSlot(input: {
 
 // ── Payment (both kinds) ──────────────────────────────────────────────
 
-function notesFor(message: string, extras: StartPaymentInput["extras"], currency: string): string | undefined {
-  const parts: string[] = [];
-  if (message.trim()) parts.push(message.trim());
-  if (extras.length) {
-    const list = extras.map((e) => `${e.name} × ${e.quantity} = ${formatMoney(e.quantity * e.unitPriceCents, currency)}`).join(" ; ");
-    parts.push(`Extras demandés sur Logement Atypique, à régler sur place : ${list}`);
+function notesFor(message: string): string | undefined {
+  return message.trim() ? message.trim().slice(0, 2000) : undefined;
+}
+
+/** The extras of a property, from BedLink (prices included). [] when none or not reachable. */
+export async function loadExtras(propertyId: string): Promise<Extra[]> {
+  if (!UUID.test(propertyId)) return [];
+  try {
+    const r = await bedlink.listExtras(propertyId);
+    return r.extras.map((e) => ({
+      id: e.id,
+      name: e.name,
+      description: e.description,
+      photoUrl: e.photoUrl,
+      priceCents: e.priceCents,
+      unit: e.unit,
+      appliesTo: e.appliesTo,
+      maxQuantity: e.maxQuantity,
+    }));
+  } catch (e) {
+    console.error("[tunnel] extras", e instanceof Error ? e.message : e);
+    return [];
   }
-  return parts.length ? parts.join("\n\n").slice(0, 2000) : undefined;
 }
 
 function checkGuest(input: StartPaymentInput) {
@@ -136,7 +153,8 @@ function checkGuest(input: StartPaymentInput) {
   check(g && g.firstName?.trim() && g.lastName?.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(g.email ?? ""), "Bad guest.");
   check((g.phone ?? "").replace(/\D/g, "").length >= 9 && (g.message ?? "").length <= 1500, "Bad guest.");
   check(Array.isArray(input.extras) && input.extras.length <= 30, "Bad extras.");
-  for (const e of input.extras) check(typeof e.id === "string" && int(e.quantity, 1, 99), "Bad extra.");
+  for (const e of input.extras) check(typeof e.id === "string" && UUID.test(e.id) && int(e.quantity, 1, 20), "Bad extra.");
+  check(new Set(input.extras.map((e) => e.id)).size === input.extras.length, "Bad extras.");
 }
 
 /**
@@ -150,21 +168,21 @@ export async function startPayment(input: StartPaymentInput): Promise<ActionResu
     const listing = String(input.listingId);
     const property = await tunnelStore.propertyForListing(listing);
     check(property, "Unknown listing.");
-    // Extras: names and prices re-read from YOUR catalogue, never from the browser.
+    // Extras: ids and quantities only. BedLink prices them and adds them to the
+    // amount charged; the lines kept here are re-read from BedLink's catalogue.
     const content = await getListing(listing);
     check(content, "Unknown listing.");
-    const extras = input.extras.map((e) => {
-      const x = content.extras.find((c) => c.id === e.id);
-      check(x, "Unknown extra.");
-      if (x.nightsOnly) check(input.kind === "night", "Extra reserved to nights.");
-      return { id: x.id, name: x.name, quantity: e.quantity, unitPriceCents: x.priceCents };
-    });
+    const catalogue = input.extras.length ? extrasFor(await loadExtras(property.propertyId), input.kind === "night" ? "night" : "day") : [];
+    for (const e of input.extras) check(catalogue.some((c) => c.id === e.id), "Unknown extra.");
+    const persons = input.kind === "night" ? 0 : input.guests;
+    const selection = Object.fromEntries(input.extras.map((e) => [e.id, e.quantity]));
+    const extraRequests = input.extras.map((e) => ({ id: e.id, quantity: e.quantity }));
     const guest = {
       name: `${input.guest.firstName.trim()} ${input.guest.lastName.trim()}`,
       email: input.guest.email.trim(),
       phone: input.guest.phone.trim(),
     };
-    const notes = notesFor(input.guest.message, extras, property.currency);
+    const notes = notesFor(input.guest.message);
     const row = {
       listingId: listing,
       propertyId: property.propertyId,
@@ -173,14 +191,18 @@ export async function startPayment(input: StartPaymentInput): Promise<ActionResu
       guestEmail: guest.email,
       guestPhone: guest.phone,
       guestMessage: input.guest.message.trim() || null,
-      extras,
+      extras: [] as TunnelExtra[],
     };
 
     if (input.kind === "night") {
       const c = await bedlinkStore.getCheckout(input.externalId);
       check(c && c.propertyId === property.propertyId, "Unknown checkout.");
-      await tunnelStore.create({ ...row, externalId: input.externalId, kind: "night" });
-      const hold = await booking.holdCheckout(input.externalId); // may re-quote: hold.totalCents is the price
+      const nights = Math.max(1, daysBetween(c.checkIn, c.checkOut));
+      const estimate = priceSelection(catalogue, selection, { persons: c.adults + c.children, nights });
+      await tunnelStore.create({ ...row, extras: estimate, externalId: input.externalId, kind: "night" });
+      // With extras, BedLink re-quotes stay + extras and holds THAT quote: hold.totalCents is the price.
+      const hold = await booking.holdCheckout(input.externalId, { extras: extraRequests });
+      if (hold.extras.length) await tunnelStore.create({ ...row, extras: hold.extras, externalId: input.externalId, kind: "night" });
       const pay = await booking.payCheckout(input.externalId, { guest, notes, returnUrl: returnUrlFor(input.externalId) });
       if (pay.mode === "confirmed") {
         await confirmAndNotify(input.externalId).catch((e) => console.error("[tunnel] e-mails", e));
@@ -200,7 +222,7 @@ export async function startPayment(input: StartPaymentInput): Promise<ActionResu
     check(UUID.test(input.propertyId) && input.propertyId === property.propertyId, "Bad property.");
     check(UUID.test(input.formuleId) && DATE.test(input.date) && int(input.guests, 1, 1000), "Bad slot.");
     const externalId = `${PREFIX}_slot_${randomUUID()}`;
-    await tunnelStore.create({ ...row, externalId, kind: "slot" });
+    await tunnelStore.create({ ...row, extras: priceSelection(catalogue, selection, { persons, nights: 1 }), externalId, kind: "slot" });
     const r = await dayRental.reserve({
       propertyId: input.propertyId,
       formuleId: input.formuleId,
@@ -210,8 +232,10 @@ export async function startPayment(input: StartPaymentInput): Promise<ActionResu
       externalId,
       guest,
       notes,
+      ...(extraRequests.length ? { extras: extraRequests } : {}),
       ...(hasFeature("payments") ? { payment: { returnUrl: returnUrlFor(externalId) } } : {}),
     });
+    if (r.extras?.length) await tunnelStore.create({ ...row, extras: r.extras, externalId, kind: "slot" });
     await tunnelStore.setSlotReservation(externalId, r.id);
     if (r.status === "confirmed") {
       await confirmAndNotify(externalId).catch((e) => console.error("[tunnel] e-mails", e));

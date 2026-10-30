@@ -10,6 +10,8 @@ import {
 } from "../plugins/bedlink-partner/skills/bedlink-tunnel/templates/components/tunnel/calendar-rules.ts";
 import { addDays } from "../plugins/bedlink-partner/skills/bedlink-tunnel/templates/components/tunnel/format.ts";
 import type { TunnelDay } from "../plugins/bedlink-partner/skills/bedlink-tunnel/templates/components/tunnel/types.ts";
+import { extrasFor, extraUnits, priceSelection } from "../plugins/bedlink-partner/skills/bedlink-tunnel/templates/components/tunnel/extras.ts";
+import type { Extra } from "../plugins/bedlink-partner/skills/bedlink-tunnel/templates/components/tunnel/types.ts";
 import { guestEmail, hostEmail } from "../plugins/bedlink-partner/skills/bedlink-tunnel/templates/lib/tunnel/emails/booking-emails.ts";
 
 const TODAY = "2026-11-01";
@@ -85,7 +87,7 @@ describe("tunnel e-mails", () => {
     hostFirstName: "Claire",
     when: "ven. 13 nov. → dim. 15 nov. · 2 nuits",
     guestsLabel: "2 adultes",
-    priceLines: [{ label: "2 nuits", cents: 27800 }],
+    priceLines: [{ label: "2 nuits", cents: 25000 }],
     totalCents: 27800,
     currency: "EUR",
     extras: [{ label: "Petit-déjeuner × 2", cents: 2800 }],
@@ -93,12 +95,20 @@ describe("tunnel e-mails", () => {
     supportEmail: "contact@example.test",
   };
 
-  it("guest e-mail: escaped, paid total, extras on site", () => {
+  it("guest e-mail: escaped, paid total, extras paid online in the total", () => {
     const e = guestEmail(booking);
     assert.match(e.html, /La &lt;Cabane&gt;/);
     assert.doesNotMatch(e.html, /La <Cabane>/);
     assert.match(e.html, /278/);
-    assert.match(e.text, /Extras à régler sur place/);
+    assert.match(e.text, /Petit-déjeuner × 2 : 28/);
+    assert.match(e.text, /Payé : 278.*extras compris/);
+    assert.doesNotMatch(e.text + e.html, /sur place/);
+  });
+
+  it("host e-mail: extras paid online, never « sur place »", () => {
+    const e = hostEmail(booking);
+    assert.match(e.text, /Extra payé en ligne : Petit-déjeuner × 2/);
+    assert.doesNotMatch(e.text + e.html, /sur place/);
   });
 
   it("host e-mail: guest contact, reply-to, link to BedLink", () => {
@@ -111,5 +121,26 @@ describe("tunnel e-mails", () => {
 
   it("no em dash in the e-mails", () => {
     assert.doesNotMatch(guestEmail(booking).html + hostEmail(booking).html, /\u2014/);
+  });
+});
+
+describe("tunnel extras (paid online, BedLink arithmetic)", () => {
+  const catalogue: Extra[] = [
+    { id: "a", name: "Panier", priceCents: 3500, unit: "per_stay", appliesTo: "any" },
+    { id: "b", name: "Petit-déjeuner", priceCents: 1250, unit: "per_person_per_night", appliesTo: "stay" },
+    { id: "c", name: "Décoration", priceCents: 2000, unit: "per_person", appliesTo: "day" },
+  ];
+  it("night stays hide day-only extras, day rentals hide night-only ones", () => {
+    assert.deepEqual(extrasFor(catalogue, "night").map((e) => e.id), ["a", "b"]);
+    assert.deepEqual(extrasFor(catalogue, "evening").map((e) => e.id), ["a", "c"]);
+  });
+  it("units: quantity × persons and/or nights, like BedLink", () => {
+    assert.equal(extraUnits(catalogue[0], 2, { persons: 3, nights: 2 }), 2);
+    assert.equal(extraUnits(catalogue[1], 1, { persons: 3, nights: 2 }), 6);
+    assert.equal(extraUnits(catalogue[2], 1, { persons: 4, nights: 1 }), 4);
+  });
+  it("the selection gives the lines and their total", () => {
+    const lines = priceSelection(catalogue, { a: 2, b: 1, c: 0 }, { persons: 3, nights: 2 });
+    assert.deepEqual(lines.map((l) => [l.id, l.units, l.totalCents]), [["a", 2, 7000], ["b", 6, 7500]]);
   });
 });

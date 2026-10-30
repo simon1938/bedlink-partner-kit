@@ -12,7 +12,7 @@ Coche chaque case, note ce qui échoue avec une capture.
 - [ ] « Voir le détail » déplie le récap dans la barre, « Masquer le détail » le replie.
 - [ ] Un seul mois dans le calendrier, jours de 40 px au moins, navigation au pouce.
 - [ ] Toucher un champ ne zoome pas (16 px).
-- [ ] Extras en liste avec vignette ; le compteur « Pour X personnes » est utilisable.
+- [ ] Extras en liste avec vignette ; un forfait a son compteur de quantité, un extra « par personne » ou « par nuit » affiche son unité.
 - [ ] La page de paiement intégrée tient dans la largeur, sans double défilement gênant.
 
 ## Ordinateur, 1440 × 900
@@ -37,7 +37,7 @@ Coche chaque case, note ce qui échoue avec une capture.
 - [ ] Seuls les jours avec un créneau libre sont cliquables.
 - [ ] Les formules du jour et leurs créneaux libres s'affichent ; le prix = celui du devis de créneau.
 - [ ] Trop de personnes pour une formule : créneaux désactivés, message clair.
-- [ ] Les extras « nuit seulement » (petit-déjeuner, départ tardif) ne sont pas proposés.
+- [ ] Les extras « nuit seulement » (`appliesTo: stay`) ne sont pas proposés.
 
 ## Paiement et option
 
@@ -54,9 +54,10 @@ Coche chaque case, note ce qui échoue avec une capture.
 
 ## Données et e-mails
 
-- [ ] La réservation apparaît dans BedLink (compte de test) avec le canal du partenaire, le voyageur, les notes (message + extras « à régler sur place »).
+- [ ] La réservation apparaît dans BedLink (compte de test) avec le canal du partenaire, le voyageur, le message, et ses extras dans « Extras » (compris dans le total).
+- [ ] Avec un extra : le total du récap, la page de paiement et le montant payé = séjour + extras ; nulle part « à régler sur place ».
 - [ ] Une ligne `tunnel_bookings` en `confirmed`, `emails_sent_at` rempli.
-- [ ] E-mail au voyageur reçu une seule fois : couleurs du partenaire, dates, total payé, extras à part, conditions d'annulation.
+- [ ] E-mail au voyageur reçu une seule fois : couleurs du partenaire, dates, extras ligne par ligne, total payé (extras compris), conditions d'annulation.
 - [ ] E-mail à l'hôte reçu une seule fois : voyageur et contact, message, extras, « Ouvrir dans BedLink » ; répondre écrit au voyageur.
 - [ ] Les deux e-mails sont lisibles sur téléphone et en texte brut.
 - [ ] Fermer l'onglet juste après « paiement réussi » : les e-mails partent quand même (webhook ou cron).
@@ -64,6 +65,6 @@ Coche chaque case, note ce qui échoue avec une capture.
 ## Sécurité
 
 - [ ] Aucune variable BedLink en `NEXT_PUBLIC_`, aucun import de `lib/bedlink/*` (hors types) dans un composant client.
-- [ ] Modifier dans le navigateur le prix d'un extra ou le total ne change rien côté serveur.
+- [ ] Modifier dans le navigateur le prix d'un extra ou le total ne change rien : le tunnel n'envoie qu'un id et une quantité, BedLink chiffre.
 - [ ] `check.mjs` de la skill `bedlink-integration` reste au vert.
 - [ ] `next build` passe.

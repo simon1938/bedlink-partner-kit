@@ -76,12 +76,24 @@ POST /creneaux/quotes { propertyId, formuleId, slotId, date, guests }
 Rien n'est gardé. **Aucune majoration de canal** : le prix est celui de la
 formule. Erreurs : `409 capacity_exceeded`, `409 slot_unavailable`.
 
-## Étape 3 : extras
+## Étape 3 : extras (payés en ligne avec le séjour, depuis le 31/10/2026)
 
-Aucun appel. Le catalogue est celui du partenaire (`getListing().extras`). Les
-prix sont relus côté serveur dans `startPayment`. Ils ne sont pas payés en
-ligne : ils partent dans `notes` (« Extras demandés sur Logement Atypique, à
-régler sur place : … »), 2 000 caractères au plus avec le message du voyageur.
+Le catalogue est celui de BedLink, réglé par l'hôte. Action `loadExtras`, au
+chargement de la page :
+
+```
+GET /properties/{id}/extras
+→ { propertyId, currency, extras: [{ id, name, nameEn, description, descriptionEn, photoUrl,
+     priceCents, unit, appliesTo, maxQuantity }] }
+```
+
+`unit` : `per_stay` (forfait, quantité réglable), `per_person`, `per_night`,
+`per_person_per_night` (BedLink multiplie par les personnes et/ou les nuits ;
+une journée compte pour une nuit). `appliesTo` : `any`, `stay` (nuits
+seulement), `day` (location à la journée seulement). Le tunnel affiche une
+estimation avec la même règle (`components/tunnel/extras.ts`) ; le montant qui
+compte est celui que BedLink tient (étape 5). Le tunnel n'envoie que
+`{ id, quantity }` : jamais un prix.
 
 ## Étape 4 : coordonnées
 
@@ -93,7 +105,13 @@ Déclenché quand le voyageur coche les conditions. Action `startPayment`.
 
 **Nuit** (`booking.holdCheckout` puis `booking.payCheckout`) :
 
+Avec des extras, `holdCheckout(externalId, { extras })` refait d'abord un devis
+séjour + extras, puis pose l'option sur CE devis :
+
 ```
+POST /quotes { propertyId, checkIn, checkOut, adults, children, extras: [{ id, quantity }] }
+→ 201 { id, totalCents (séjour + extras), stayCents, extrasCents, extras: [{ id, name, unit,
+        unitPriceCents, quantity, units, totalCents }], nights, expiresAt }
 POST /holds { quoteId, reference }            → 201 { id, status: "active", expiresAt }   (15 min)
 POST /payment-sessions { holdId, externalId, guest, notes, returnUrl, cancelUrl? }
 → 201 { id: "ps_…", status: "open", embedUrl, url, amountCents, hostAmountCents, partnerFeeCents, currency, expiresAt }
@@ -107,8 +125,9 @@ nuits sont fermées partout (Airbnb, Booking…).
 
 ```
 POST /creneaux/reservations { propertyId, formuleId, slotId, date, guests, externalId,
-                              guest, notes, payment: { returnUrl, cancelUrl? } }
-→ 201 { id, status: "pending_payment", totalCents, payment: { id: "pc_…", url, embedUrl, expiresAt } }
+                              guest, notes, extras?, payment: { returnUrl, cancelUrl? } }
+→ 201 { id, status: "pending_payment", totalCents (créneau + extras), extras, extrasCents,
+        payment: { id: "pc_…", url, embedUrl, expiresAt } }
 ```
 
 Rejouer le même `externalId` rend la même réservation (200).
@@ -150,7 +169,7 @@ perdue entre-temps : BedLink rembourse et ne crée rien (`expired`).
 
 ## Ce qui n'existe pas (ne pas l'inventer)
 
-- un endpoint d'extras, ou des extras dans `POST /payment-sessions` ;
+- des extras dans `POST /payment-sessions` (ils passent par le devis de l'option) ;
 - un réglage des couleurs de la page `/pay/…` ;
 - un lien direct vers la réservation dans le tableau de bord BedLink ;
 - un webhook de confirmation de créneau.

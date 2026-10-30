@@ -44,18 +44,22 @@ export type FreeSlot = {
 };
 
 /**
- * An extra from YOUR catalogue (Logement Atypique side). BedLink does not sell
- * extras through the partner API yet: they are not part of the online payment.
+ * An extra of the BedLink catalogue (GET /properties/{id}/extras, 31/10/2026).
+ * It is paid ONLINE with the stay: BedLink prices it and adds it to the amount
+ * charged. The tunnel only sends { id, quantity }.
  */
 export type Extra = {
   id: string;
   name: string;
-  description?: string;
-  imageUrl?: string;
+  description?: string | null;
+  photoUrl?: string | null;
+  /** Price per unit, set by the host in BedLink. */
   priceCents: number;
-  perPerson?: boolean;
-  /** Only offered for a night stay (breakfast, late check-out…). */
-  nightsOnly?: boolean;
+  /** A day rental counts as one night. Persons = adults + children, or guests. */
+  unit: "per_stay" | "per_person" | "per_night" | "per_person_per_night";
+  /** "stay" = night stays only (breakfast, late check-out…), "day" = day rentals only. */
+  appliesTo: "any" | "stay" | "day";
+  maxQuantity?: number;
 };
 export type ExtraSelection = Record<string, number>; // extra id → quantity (0 = not selected)
 
@@ -135,7 +139,8 @@ export type TunnelActions = {
 export type StartPaymentInput = {
   listingId: string;
   guest: GuestDetails;
-  extras: { id: string; name: string; quantity: number; unitPriceCents: number }[];
+  /** Ids and quantities only: BedLink prices the extras. */
+  extras: { id: string; quantity: number }[];
 } & (
   | { kind: "night"; externalId: string }
   | { kind: "slot"; propertyId: string; formuleId: string; slotId: string; date: string; guests: number }

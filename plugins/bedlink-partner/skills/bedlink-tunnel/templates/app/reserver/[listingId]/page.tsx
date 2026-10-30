@@ -4,7 +4,7 @@ import { addDays, addMonths, lastOfMonth } from "@/components/tunnel/format";
 import { todayIn } from "@/lib/bedlink/dates";
 import { getListing } from "@/lib/tunnel/config";
 import { tunnelStore } from "@/lib/tunnel/store";
-import { bookingStatus, loadCalendar, loadSlots, quoteNights, quoteSlot, release, startPayment } from "../actions";
+import { bookingStatus, loadCalendar, loadExtras, loadSlots, quoteNights, quoteSlot, release, startPayment } from "../actions";
 
 // Example booking page: /reserver/<listingId>. Rename the route to your slugs,
 // put your gallery and texts in `header`, keep the tunnel underneath.
@@ -22,9 +22,11 @@ export default async function ReserverPage({ params }: { params: Promise<{ listi
 
   const today = todayIn(property.timezone);
   const lastShown = lastOfMonth(addMonths(today.slice(0, 8) + "01", 1));
-  const [days, day] = await Promise.all([
+  const [days, day, extras] = await Promise.all([
     loadCalendar(property.propertyId, today, addDays(lastShown, 1)),
     loadSlots(property.propertyId, today, lastShown),
+    // The host's extras, priced by BedLink and paid online with the stay.
+    loadExtras(property.propertyId),
   ]);
 
   return (
@@ -47,7 +49,7 @@ export default async function ReserverPage({ params }: { params: Promise<{ listi
       initialDays={days.ok ? days.data : []}
       formules={day.ok ? day.data.formules : []}
       initialSlots={day.ok ? day.data.slots : []}
-      extras={content.extras}
+      extras={extras}
       actions={{ loadCalendar, quoteNights, loadSlots, quoteSlot, startPayment, bookingStatus, release }}
       header={
         <header className="bt-sec">

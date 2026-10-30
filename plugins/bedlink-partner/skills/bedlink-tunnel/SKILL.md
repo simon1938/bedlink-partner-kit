@@ -58,10 +58,13 @@ Argument : `recette` va directement à l'étape 9. Sinon : installation complèt
    l'e-mail à l'hôte (validé).
 8. **Ne jamais inventer une information du logement** (capacité, équipement,
    prix, horaires). Ce qui manque s'écrit « à confirmer » et se demande.
-9. **Extras** : ils viennent du catalogue du partenaire. L'API BedLink ne les
-   encaisse pas encore : ils s'affichent « à régler sur place », hors du total
-   payé, et partent à l'hôte dans les `notes` de la réservation et dans son
-   e-mail. Ne les ajoute jamais au montant payé en ligne.
+9. **Extras** : ils viennent de BedLink (`GET /properties/{id}/extras`, action
+   `loadExtras`) et se **paient en ligne avec le séjour**. Le prix est celui de
+   BedLink : le tunnel n'envoie que `{ id, quantity }` (au devis de l'option
+   pour une nuit, à `POST /creneaux/reservations` pour un créneau) et BedLink
+   les ajoute au montant encaissé. Le récap, les e-mails et la page de
+   paiement les montrent dans le total. N'invente jamais un prix d'extra et
+   n'écris jamais « à régler sur place ».
 10. Clé, secrets, `BEDLINK_FEATURES` : mêmes règles que la skill
     `bedlink-integration` (jamais dans la conversation, jamais `NEXT_PUBLIC_`).
 
@@ -72,9 +75,9 @@ Argument : `recette` va directement à l'étape 9. Sinon : installation complèt
 | 1 | Dates + type | Fiche, type de séjour (Nuit par défaut, Journée, Soirée), calendrier, voyageurs | copie `bedlink_calendar_days` ; dès l'arrivée et le départ posés : `POST /quotes` |
 | 1 bis | Jour (journée, soirée) | Calendrier à un jour : seuls les jours avec un créneau libre | `GET /properties/{id}/formules` + `GET /properties/{id}/creneaux` |
 | 2 | Créneau (journée, soirée) | Formules du jour, créneaux libres | `POST /creneaux/quotes` |
-| 3 | Extras | Grille de cartes photo, un toucher l'ajoute au récap | aucun (catalogue du partenaire) |
+| 3 | Extras | Grille de cartes photo, un toucher l'ajoute au récap et au total | `GET /properties/{id}/extras` (au chargement de la page) |
 | 4 | Coordonnées | Prénom, nom, e-mail, téléphone, message à l'hôte | aucun |
-| 5 | Paiement | Case CGV, puis minuteur 15 min et page de paiement intégrée | nuit : `POST /holds` puis `POST /payment-sessions` ; créneau : `POST /creneaux/reservations` avec `payment` |
+| 5 | Paiement | Case CGV, puis minuteur 15 min et page de paiement intégrée | nuit : avec extras `POST /quotes` (séjour + extras) puis `POST /holds` et `POST /payment-sessions` ; créneau : `POST /creneaux/reservations` avec `payment` et `extras` |
 | 6 | Confirmation | Référence, récap « Payé », la suite | `GET /payment-sessions/{id}` ou `GET /creneaux/reservations/{id}` ; e-mails |
 
 L'étape Extras disparaît s'il n'y a aucun extra pour ce logement ; le choix du
@@ -133,8 +136,8 @@ Une seule question groupée, puis attends :
   le tunnel (BedLink poste le résultat du paiement à l'origine de `returnUrl`) ;
 - la page de ses **conditions de réservation** (CGV) ;
 - l'**adresse d'envoi** des e-mails et son fournisseur (Resend, Postmark…) ;
-- où vivent ses **annonces** (nom, photo, prénom et e-mail de l'hôte) et son
-  **catalogue d'extras** s'il en a un.
+- où vivent ses **annonces** (nom, photo, prénom et e-mail de l'hôte). Les
+  extras ne sont pas à lui demander : ils viennent de BedLink.
 
 Ouvre `references/croquis.html` (ou montre-le) pour s'accorder sur l'écran.
 
@@ -165,7 +168,7 @@ React, Next et le client BedLink suffisent.
 ## 5. Brancher ses données (`lib/tunnel/config.ts`)
 
 - `getListing(listingId)` : nom, sous-titre, première photo, URL publique,
-  prénom et e-mail de l'hôte, URL des CGV, extras (`Extra[]`, `[]` si aucun).
+  prénom et e-mail de l'hôte, URL des CGV. (Plus d'extras ici : BedLink.)
 - `sendEmail()` : son fournisseur d'e-mails, `from` = `EMAIL_FROM`.
 - `EMAIL_FROM`, `SUPPORT_EMAIL` : ses adresses (à confirmer avec lui).
 
@@ -211,7 +214,6 @@ réservation sur le compte de test BedLink (visible dans son journal).
 
 ## Ce que l'API ne fait pas encore (ne pas contourner)
 
-- **Extras payés en ligne** : pas d'endpoint ; ils restent « à régler sur place ».
 - **Couleurs de la page de paiement** : la page BedLink intégrée garde son
   propre habillage (fond clair, bleu nuit) et affiche son propre récap et son
   minuteur. Ne tente pas de la restyler.

@@ -4,7 +4,8 @@ import type { TunnelDay } from "@/components/tunnel/types";
 // Every query of the tunnel, plain parameterised Postgres (same style as
 // lib/bedlink/store.ts). Table: schema/tunnel.sql.
 
-export type TunnelExtra = { id: string; name: string; quantity: number; unitPriceCents: number };
+/** An extra paid online with the stay, as BedLink priced it (31/10/2026). */
+export type TunnelExtra = { id: string; name: string; quantity: number; units: number; unitPriceCents: number; totalCents: number };
 
 export type TunnelBooking = {
   externalId: string;

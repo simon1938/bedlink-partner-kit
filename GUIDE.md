@@ -48,8 +48,8 @@ dans votre projet, l'IA vous fera d'abord lancer
   (ex. `https://logement-atypique.fr`, et en développement `http://localhost:3000`).
 - **La page de vos conditions de réservation** (CGV).
 - **L'adresse d'envoi des e-mails** et votre fournisseur (Resend, Postmark…).
-- **Où vivent vos annonces** : nom, photo, prénom et e-mail de l'hôte, et votre
-  **catalogue d'extras** si vous en proposez (nom, photo, prix, par personne ou non).
+- **Où vivent vos annonces** : nom, photo, prénom et e-mail de l'hôte. Les
+  extras, eux, viennent de BedLink (l'hôte les règle dans son compte).
 
 L'IA vous pose ces questions en une fois. Votre clé BedLink, elle, se colle
 dans `.env.local`, jamais dans la conversation.
@@ -69,8 +69,10 @@ La recette (téléphone 375 px, ordinateur 1440 px, option expirée, paiement
 ## Bon à savoir
 
 - Le prix vient toujours du devis BedLink : le calendrier n'affiche pas de prix.
-- Les extras ne sont pas encore encaissés en ligne par BedLink : ils
-  s'affichent « à régler sur place » et partent à l'hôte avec la réservation.
+- Les extras se paient en ligne avec le séjour : le catalogue et les prix
+  viennent de BedLink (`GET /properties/{id}/extras`), le tunnel n'envoie que
+  l'identifiant et la quantité, et BedLink les ajoute au montant encaissé.
+  En cas d'option échue, le voyageur est remboursé de tout, extras compris.
 - La carte est saisie dans la page BedLink intégrée, sur le compte Stripe de
   l'hôte : votre site ne la voit jamais. C'est le seul endroit marqué BedLink.
 

@@ -1,5 +1,3 @@
-import type { Extra } from "@/components/tunnel/types";
-
 // What the tunnel needs from YOUR site. Everything here is Logement Atypique
 // data: replace each "À brancher" with a call to your own database or CMS.
 // Server side only.
@@ -14,7 +12,8 @@ export type ListingContent = {
   hostFirstName?: string;
   hostEmail: string; // where the host e-mail goes
   termsUrl: string; // your booking conditions (CGV) + the host's cancellation policy
-  extras: Extra[]; // the extras of this listing (your catalogue), [] if none
+  // No extras here: they come from BedLink (GET /properties/{id}/extras) and
+  // are paid online with the stay (31/10/2026).
 };
 
 /** Public URL of the site, for the payment return page and the e-mails. */
@@ -26,7 +25,7 @@ export function siteUrl(): string {
 
 export async function getListing(listingId: string): Promise<ListingContent | null> {
   void listingId;
-  throw new Error("À brancher : lire l'annonce (nom, photo, hôte, extras) dans votre base.");
+  throw new Error("À brancher : lire l'annonce (nom, photo, hôte) dans votre base.");
 }
 
 export type Email = { from: string; to: string; subject: string; html: string; text: string; replyTo?: string };

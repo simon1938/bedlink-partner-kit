@@ -54,15 +54,18 @@ async function buildEmailBooking(externalId: string): Promise<{ booking: EmailBo
     if (!c?.reservationId) throw new Error(`Checkout ${externalId} is not confirmed`);
     const r = await bedlink.getReservation(c.reservationId);
     const n = daysBetween(r.checkIn, r.checkOut);
+    // Extras paid with the stay: BedLink's lines first, the ones kept here otherwise.
+    const extras = extraLines(r.extras?.length ? r.extras : t.extras);
+    const extrasCents = extras.reduce((sum, e) => sum + e.cents, 0);
     const booking: EmailBooking = {
       ...common,
       kind: "night",
       when: `${formatDay(r.checkIn)} → ${formatDay(r.checkOut)} · ${plural(n, "nuit", "nuits")}`,
       guestsLabel: guestsLabel(r.adults, r.children),
-      priceLines: [{ label: plural(n, "nuit", "nuits"), cents: r.totalCents }],
+      priceLines: [{ label: plural(n, "nuit", "nuits"), cents: r.totalCents - extrasCents }],
       totalCents: r.payment?.amountCents ?? r.totalCents,
       currency: r.currency,
-      extras: t.extras.map((e) => ({ label: `${e.name} × ${e.quantity}`, cents: e.quantity * e.unitPriceCents })),
+      extras,
     };
     return { booking, hostEmail: listing.hostEmail };
   }
@@ -70,18 +73,25 @@ async function buildEmailBooking(externalId: string): Promise<{ booking: EmailBo
   const s = await dayRental.get(t.slotReservationId!);
   const hour = (iso: string) =>
     new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: property?.timezone ?? "Europe/Paris" }).format(new Date(iso));
+  const slotExtras = extraLines(s.extras?.length ? s.extras : t.extras);
+  const slotExtrasCents = slotExtras.reduce((sum, e) => sum + e.cents, 0);
   const booking: EmailBooking = {
     ...common,
     kind: "slot",
     when: `${formatDay(s.date)} · ${hour(s.startAt)} → ${hour(s.endAt)}`,
     formuleName: `${s.formuleName} · ${s.slotLabel}`,
     guestsLabel: plural(s.guests, "personne", "personnes"),
-    priceLines: [{ label: s.formuleName, cents: s.totalCents }],
+    priceLines: [{ label: s.formuleName, cents: s.totalCents - slotExtrasCents }],
     totalCents: s.totalCents,
     currency: s.currency,
-    extras: t.extras.map((e) => ({ label: `${e.name} × ${e.quantity}`, cents: e.quantity * e.unitPriceCents })),
+    extras: slotExtras,
   };
   return { booking, hostEmail: listing.hostEmail };
+}
+
+/** Extras paid online with the stay, as e-mail lines (they are IN the total). */
+function extraLines(list: { name: string; units: number; unitPriceCents: number; totalCents?: number }[]) {
+  return list.map((e) => ({ label: e.units > 1 ? `${e.name} × ${e.units}` : e.name, cents: e.totalCents ?? e.units * e.unitPriceCents }));
 }
 
 function guestsLabel(adults: number, children: number) {

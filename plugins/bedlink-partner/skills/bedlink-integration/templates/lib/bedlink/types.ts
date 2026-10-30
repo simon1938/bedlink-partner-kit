@@ -58,12 +58,49 @@ export type Calendar = {
 
 export type Night = { date: string; priceCents: number };
 
+/**
+ * An extra the guest pays online with the stay (GET /properties/{id}/extras,
+ * since 31/10/2026). The price is BedLink's: send only { id, quantity }.
+ */
+export type Extra = {
+  id: string;
+  name: string;
+  nameEn: string | null;
+  description: string | null;
+  descriptionEn: string | null;
+  photoUrl: string | null;
+  /** Price per unit. */
+  priceCents: number;
+  currency: string;
+  /** A day rental counts as one night. Persons = adults + children (or guests for a slot). */
+  unit: "per_stay" | "per_person" | "per_night" | "per_person_per_night";
+  appliesTo: "any" | "stay" | "day";
+  maxQuantity: number;
+};
+
+export type ExtraRequest = { id: string; quantity: number };
+
+/** One priced extra line, as BedLink computed it (quote, reservation). */
+export type ExtraLine = {
+  id: string;
+  name: string;
+  nameEn: string | null;
+  unit: Extra["unit"];
+  unitPriceCents: number;
+  quantity: number;
+  /** quantity × persons and/or nights, depending on unit. */
+  units: number;
+  totalCents: number;
+};
+
 export type QuoteInput = {
   propertyId: string;
   checkIn: string;
   checkOut: string;
   adults?: number;
   children?: number;
+  /** Paid online with the stay: totalCents = stayCents + extrasCents. */
+  extras?: ExtraRequest[];
 };
 
 export type Quote = {
@@ -74,9 +111,13 @@ export type Quote = {
   checkOut: string;
   adults: number;
   children: number;
+  /** Stay + extras: the amount charged. */
   totalCents: number;
+  stayCents?: number;
+  extrasCents?: number;
   currency: string;
   nights: Night[];
+  extras?: ExtraLine[];
   expiresAt: string;
 };
 
@@ -109,7 +150,11 @@ export type Reservation = {
   status: "confirmed" | "cancelled" | "completed" | "pending";
   adults: number;
   children: number;
+  /** Stay + extras. */
   totalCents: number;
+  extrasCents?: number;
+  /** Extras paid with the stay, frozen as bought. */
+  extras?: ExtraLine[];
   currency: string;
   guest: Guest;
   notes?: string | null;

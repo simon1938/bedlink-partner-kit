@@ -1,6 +1,6 @@
 -- Booking tunnel table (your side). Idempotent: safe to re-run.
 -- Complements the bedlink_* tables of the integration: what BedLink does not
--- keep for you (the listing, the extras paid on site, the e-mails sent).
+-- keep for you (the listing, the extras paid online with the stay, the e-mails sent).
 -- Night stays: dates, price and BedLink reservation are in bedlink_checkouts
 -- (same external_id). Slots: in BedLink, read by bedlink_slot_reservation_id.
 

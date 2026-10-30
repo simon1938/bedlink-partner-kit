@@ -18,7 +18,7 @@ export type EmailBooking = {
   priceLines: { label: string; cents: number }[];
   totalCents: number;
   currency: string;
-  extras: { label: string; cents: number }[]; // paid on site
+  extras: { label: string; cents: number }[]; // paid online, included in totalCents
   guest: { name: string; email: string; phone?: string | null; message?: string | null };
   cancellationSummary?: string | null;
   manageUrl?: string; // your "ma réservation" page, if you have one
@@ -29,13 +29,9 @@ function money(cents: number, currency: string) {
   return esc(formatMoney(cents, currency));
 }
 
+/** One row per extra, above the total: they are paid online with the stay. */
 function extrasRows(b: EmailBooking): [string, string][] {
-  if (!b.extras.length) return [];
-  const total = b.extras.reduce((s, e) => s + e.cents, 0);
-  return [
-    ["Extras, à régler sur place", esc(b.extras.map((e) => e.label).join(", "))],
-    ["Total des extras sur place", money(total, b.currency)],
-  ];
+  return b.extras.map((e) => [esc(e.label), money(e.cents, b.currency)] as [string, string]);
 }
 
 export function guestEmail(b: EmailBooking) {
@@ -45,13 +41,13 @@ export function guestEmail(b: EmailBooking) {
     ...(b.formuleName ? ([["Formule", esc(b.formuleName)]] as [string, string][]) : []),
     ["Voyageurs", esc(b.guestsLabel)],
     ...b.priceLines.map((l) => [esc(l.label), money(l.cents, b.currency)] as [string, string]),
+    ...extrasRows(b),
   ];
   const body =
     kicker(`Réservation confirmée · ${b.ref}`) +
     title(`Bonjour ${b.guest.name.split(" ")[0]}, tout est prêt.`) +
     paragraph(`Votre réservation à <strong>${esc(b.listingName)}</strong> est confirmée et payée. ${esc(host)}, votre hôte, l’a bien reçue.`) +
     table(rows, ["Payé", money(b.totalCents, b.currency)]) +
-    (b.extras.length ? table(extrasRows(b)) : "") +
     box(
       `<strong>Et maintenant ?</strong><br>${esc(host)} vous enverra l’adresse exacte et les instructions d’arrivée avant votre venue.` +
         (b.cancellationSummary ? `<br><br><strong>Annulation</strong><br>${esc(b.cancellationSummary)}` : ""),
@@ -75,8 +71,8 @@ export function guestEmail(b: EmailBooking) {
     `${b.kind === "night" ? "Séjour" : "Venue"} : ${b.when}`,
     ...(b.formuleName ? [`Formule : ${b.formuleName}`] : []),
     `Voyageurs : ${b.guestsLabel}`,
-    `Payé : ${formatMoney(b.totalCents, b.currency)}`,
-    ...(b.extras.length ? [`Extras à régler sur place : ${b.extras.map((e) => `${e.label} (${formatMoney(e.cents, b.currency)})`).join(", ")}`] : []),
+    ...b.extras.map((e) => `${e.label} : ${formatMoney(e.cents, b.currency)}`),
+    `Payé : ${formatMoney(b.totalCents, b.currency)}${b.extras.length ? " (extras compris)" : ""}`,
     ``,
     `${host} vous enverra l’adresse exacte et les instructions d’arrivée.`,
     ...(b.cancellationSummary ? [``, `Annulation : ${b.cancellationSummary}`] : []),
@@ -121,8 +117,8 @@ export function hostEmail(b: EmailBooking) {
     `Voyageurs : ${b.guestsLabel}`,
     `Voyageur : ${b.guest.name}, ${b.guest.email}${b.guest.phone ? ", " + b.guest.phone : ""}`,
     ...(b.guest.message ? [`Message : ${b.guest.message}`] : []),
-    `Payé en ligne : ${formatMoney(b.totalCents, b.currency)}`,
-    ...(b.extras.length ? [`Extras à régler sur place : ${b.extras.map((e) => e.label).join(", ")}`] : []),
+    ...b.extras.map((e) => `Extra payé en ligne : ${e.label} (${formatMoney(e.cents, b.currency)})`),
+    `Payé en ligne : ${formatMoney(b.totalCents, b.currency)}${b.extras.length ? " (extras compris)" : ""}`,
     `Dates déjà fermées sur vos autres canaux.`,
     `Ouvrir dans BedLink : ${BEDLINK_RESERVATIONS_URL}`,
   ].join("\n");

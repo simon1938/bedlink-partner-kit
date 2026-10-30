@@ -2,13 +2,14 @@ import { randomUUID } from "node:crypto";
 import { bedlink, BedlinkError } from "./client";
 import { hasFeature } from "./config";
 import { store as defaultStore, type BedlinkStore, type Checkout } from "./store";
-import type { Guest, Quote, Reservation } from "./types";
+import type { ExtraLine, ExtraRequest, Guest, Quote, Reservation } from "./types";
 
 // The booking path. NEVER decide a booking from the local copy: the copy
 // says "probably free", only BedLink says "booked".
 //
 //   1. startCheckout()  POST /quotes        price for the exact stay (valid 5 min)
 //   2. holdCheckout()   POST /holds         the night is closed everywhere for 15 min
+//                       (with extras: a new quote stay + extras is held instead)
 //   3. payCheckout()    payments on  → POST /payment-sessions → embedded BedLink page
 //                       payments off → POST /reservations (sandbox, no online payment)
 //   4. the reservation is confirmed by BedLink (response, webhook, or getCheckoutStatus)
@@ -85,12 +86,30 @@ export function createBooking(store: BedlinkStore = defaultStore) {
       return { externalId, quote };
     },
 
-    /** Re-quotes once if the 5-minute quote has expired. */
-    async holdCheckout(externalId: string) {
+    /**
+     * Re-quotes once if the 5-minute quote has expired.
+     *
+     * `extras` (31/10/2026): the extras the guest pays online with the stay.
+     * BedLink prices them in a NEW quote (stay + extras), then this quote is
+     * held: the payment session charges both. A hold already taken without
+     * them is released first. The price may change: show totalCents again.
+     */
+    async holdCheckout(externalId: string, opts: { extras?: ExtraRequest[] } = {}) {
       let c = await load(externalId);
       if (c.status !== "quoted" && c.status !== "held") throw new CheckoutFailed(c.status, `Checkout is ${c.status}.`);
+      if (opts.extras?.length) {
+        if (c.status === "held" && c.holdId) await bedlink.releaseHold(c.holdId).catch(() => undefined);
+        const quote = await bedlink
+          .createQuote({ propertyId: c.propertyId, checkIn: c.checkIn, checkOut: c.checkOut, adults: c.adults, children: c.children, extras: opts.extras })
+          .catch(translate);
+        const reference = c.holdId ? `${externalId}:${Date.now().toString(36)}` : externalId;
+        const hold = await bedlink.createHold(quote.id, reference).catch(translate);
+        c = { ...c, quoteId: quote.id, quoteExpiresAt: quote.expiresAt, totalCents: quote.totalCents, currency: quote.currency, holdId: hold.id, holdExpiresAt: hold.expiresAt, status: "held" };
+        await store.saveCheckout(c);
+        return { holdId: hold.id, expiresAt: hold.expiresAt, totalCents: quote.totalCents, currency: quote.currency, extras: quote.extras ?? ([] as ExtraLine[]) };
+      }
       if (c.status === "held" && c.holdId && c.holdExpiresAt && Date.parse(c.holdExpiresAt) > Date.now() + 5_000) {
-        return { holdId: c.holdId, expiresAt: c.holdExpiresAt, totalCents: c.totalCents!, currency: c.currency! };
+        return { holdId: c.holdId, expiresAt: c.holdExpiresAt, totalCents: c.totalCents!, currency: c.currency!, extras: [] as ExtraLine[] };
       }
       // First hold: reference = externalId (a network retry returns the same hold).
       // A new hold after expiry needs a new reference, BedLink refuses to reuse one.
@@ -108,7 +127,7 @@ export function createBooking(store: BedlinkStore = defaultStore) {
         c = { ...c, quoteId: quote.id, quoteExpiresAt: quote.expiresAt, totalCents: quote.totalCents, currency: quote.currency, holdId: hold.id, holdExpiresAt: hold.expiresAt, status: "held" };
       }
       await store.saveCheckout(c);
-      return { holdId: c.holdId!, expiresAt: c.holdExpiresAt!, totalCents: c.totalCents!, currency: c.currency! };
+      return { holdId: c.holdId!, expiresAt: c.holdExpiresAt!, totalCents: c.totalCents!, currency: c.currency!, extras: [] as ExtraLine[] };
     },
 
     /**

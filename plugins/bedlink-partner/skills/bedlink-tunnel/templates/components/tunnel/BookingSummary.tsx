@@ -1,12 +1,13 @@
 "use client";
 
 import { formatDay, formatHour, formatMoney, plural } from "./format";
-import type { Extra, ExtraSelection, StayKind, TunnelListing } from "./types";
+import { unitLabel, type ExtraLineView } from "./extras";
+import type { StayKind, TunnelListing } from "./types";
 
 // The summary: sticky right column on a computer (Alexian, Yenna), unfolded
 // from the bottom bar on a phone. Prices come ONLY from the BedLink quote
-// (nights or slot). Nothing is computed here except the extras, which are
-// yours and paid on site.
+// (nights or slot) and, once the price is held, the BedLink total including
+// the extras. Before that, the extras lines use BedLink's catalogue prices.
 
 export type SummaryPrice = {
   lines: { label: string; cents: number }[];
@@ -23,12 +24,6 @@ export function nightLines(nights: { date: string; priceCents: number }[], total
   return lines;
 }
 
-export function selectedExtras(extras: Extra[], value: ExtraSelection) {
-  return extras
-    .filter((e) => (value[e.id] ?? 0) > 0)
-    .map((e) => ({ id: e.id, name: e.name, quantity: value[e.id], unitPriceCents: e.priceCents, perPerson: !!e.perPerson }));
-}
-
 export function BookingSummary(props: {
   listing: TunnelListing;
   kind: StayKind;
@@ -38,13 +33,19 @@ export function BookingSummary(props: {
   slot?: { name: string; start: string; end: string } | null;
   adults: number;
   children: number;
+  /** The stay or slot price (BedLink quote), WITHOUT extras. */
   price: SummaryPrice;
-  extras: ReturnType<typeof selectedExtras>;
+  /** Extras paid online with the stay. */
+  extras: ExtraLineView[];
+  /** The amount BedLink holds (stay + extras), once known. Wins over the sum. */
+  heldTotalCents?: number | null;
   justAdded?: string | null; // extra id, for the short highlight
   final?: boolean; // confirmation page
 }) {
   const { listing, price } = props;
-  const extrasTotal = props.extras.reduce((s, e) => s + e.quantity * e.unitPriceCents, 0);
+  const extrasTotal = props.extras.reduce((s, e) => s + e.totalCents, 0);
+  const ctx = { persons: props.adults + props.children, nights: props.checkIn && props.checkOut ? Math.max(1, Math.round((Date.parse(props.checkOut) - Date.parse(props.checkIn)) / 86_400_000)) : 1 };
+  const total = price ? (props.heldTotalCents ?? price.totalCents + extrasTotal) : null;
   const guests = `${plural(props.adults, "adulte", "adultes")}${props.children ? ", " + plural(props.children, "enfant", "enfants") : ""}`;
 
   return (
@@ -81,26 +82,28 @@ export function BookingSummary(props: {
         )}
       </div>
 
-      <div className="bt-recap-total">
-        <span>{props.final ? "Payé" : "À payer maintenant"}</span>
-        <strong>{price ? formatMoney(price.totalCents, price.currency) : "·"}</strong>
-      </div>
-      {price && !props.final ? <span className="bt-live">Tarif vérifié en direct</span> : null}
-
       {props.extras.length ? (
         <div className="bt-recap-block bt-recap-extras">
-          <span className="bt-cap">Extras · à régler sur place</span>
-          {props.extras.map((e) => (
-            <Row
-              key={e.id}
-              className={props.justAdded === e.id ? "is-new" : undefined}
-              label={e.name + (e.perPerson ? ` × ${e.quantity}` : "")}
-              value={formatMoney(e.quantity * e.unitPriceCents, listing.currency)}
-            />
-          ))}
-          <Row label="Sur place" value={formatMoney(extrasTotal, listing.currency)} />
+          <span className="bt-cap">Extras · payés avec la réservation</span>
+          {props.extras.map((e) => {
+            const detail = unitLabel(e, ctx);
+            return (
+              <Row
+                key={e.id}
+                className={props.justAdded === e.id ? "is-new" : undefined}
+                label={e.name + (detail ? ` (${detail})` : "")}
+                value={formatMoney(e.totalCents, listing.currency)}
+              />
+            );
+          })}
         </div>
       ) : null}
+
+      <div className="bt-recap-total">
+        <span>{props.final ? "Payé" : "À payer maintenant"}</span>
+        <strong>{price && total !== null ? formatMoney(total, price.currency) : "·"}</strong>
+      </div>
+      {price && !props.final ? <span className="bt-live">Tarif vérifié en direct</span> : null}
 
       {!props.final ? (
         <p className="bt-recap-foot">{listing.cancellationSummary || "Annulation selon les conditions de l’hôte"}</p>

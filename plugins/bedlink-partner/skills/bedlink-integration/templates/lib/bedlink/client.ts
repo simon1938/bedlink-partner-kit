@@ -11,6 +11,7 @@ import type {
   Property,
   Quote,
   QuoteInput,
+  Extra,
   Reservation,
 } from "./types";
 import { addDays, daysBetween } from "./dates";
@@ -92,6 +93,9 @@ export const bedlink = {
     }
     return days;
   },
+
+  /** The extras a guest can pay online with the stay (BedLink prices). */
+  listExtras: (id: string) => call<{ propertyId: string; currency: string; extras: Extra[] }>(`/properties/${enc(id)}/extras`),
 
   createQuote: (input: QuoteInput) => call<Quote>("/quotes", { method: "POST", body: input }),
 

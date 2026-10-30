@@ -120,6 +120,27 @@ Bornes incluses. **365 jours d'écart maximum (366 dates)** avec `calendar_366`,
 
 Valable 5 minutes.
 
+### Extras payés avec le séjour [DISPO depuis le 31/10/2026]
+
+`GET /properties/{id}/extras` → `{ propertyId, currency, extras: [{ id, name, nameEn,
+description, descriptionEn, photoUrl, priceCents, currency, unit, appliesTo, maxQuantity }] }`.
+Le catalogue de l'hôte, prix BedLink. `unit` : `per_stay` | `per_person` |
+`per_night` | `per_person_per_night` (une journée compte pour une nuit ;
+personnes = adultes + enfants, ou `guests` d'un créneau). `appliesTo` :
+`any` | `stay` | `day`.
+
+`POST /quotes`, `POST /creneaux/quotes`, `POST /creneaux/reservations`
+acceptent `extras: [{ id, quantity }]` (chaque id une fois, quantité 1 à 20).
+BedLink chiffre : `totalCents = stayCents + extrasCents` (créneau :
+`slotCents + extrasCents`), lignes dans `extras: [{ id, name, nameEn, unit,
+unitPriceCents, quantity, units, totalCents }]`. L'option et
+`POST /payment-sessions` suivent le devis : le paiement encaisse séjour +
+extras ; une option échue rembourse tout. La réservation expose `extras` et
+`extrasCents` ; une modification de dates recalcule les nuits seulement.
+Erreurs : `400 invalid_request` (extra inconnu ou éteint), `400
+extra_not_applicable` (extra « nuit » sur un créneau, ou l'inverse). Sans
+`extras`, rien ne change.
+
 `POST /holds` `{ quoteId, reference }` → `201 { id, quoteId, status: "active", expiresAt }`.
 15 minutes ; la nuit est fermée partout (Airbnb, Booking…). `reference` est
 unique chez vous : la rejouer à l'identique rend la même option, sans la

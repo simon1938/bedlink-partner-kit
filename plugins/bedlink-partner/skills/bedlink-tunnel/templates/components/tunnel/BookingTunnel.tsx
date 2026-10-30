@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { PaymentFrame, type PaymentFrameResult } from "@/components/bedlink/PaymentFrame";
-import { BookingSummary, nightLines, selectedExtras, type SummaryPrice } from "./BookingSummary";
+import { BookingSummary, nightLines, type SummaryPrice } from "./BookingSummary";
+import { priceSelection } from "./extras";
 import { StayCalendar } from "./StayCalendar";
 import type { Range } from "./calendar-rules";
 import { ExtrasGrid, extrasFor } from "./ExtrasGrid";
@@ -113,7 +114,7 @@ export function BookingTunnel(props: {
   const [confirmedRef, setConfirmedRef] = useState<string | null>(null);
   const [sheet, setSheet] = useState(false);
 
-  const extras = useMemo(() => extrasFor(props.extras, kind === "night"), [props.extras, kind]);
+  const extras = useMemo(() => extrasFor(props.extras, kind), [props.extras, kind]);
   const steps: Step[] = useMemo(() => {
     const s: Step[] = kind === "night" ? ["dates"] : ["dates", "slot"];
     if (extras.length) s.push("extras");
@@ -198,7 +199,11 @@ export function BookingTunnel(props: {
   // ── Derived display ───────────────────────────────────────────────────
   const formule = props.formules.find((f) => f.id === slotSel?.formuleId) ?? null;
   const slot = formule?.slots.find((s) => s.id === slotSel?.slotId) ?? null;
-  const chosenExtras = selectedExtras(extras, extraSel);
+  // Extras paid online with the stay: BedLink's catalogue prices, same arithmetic
+  // as BedLink. The held total (payment.totalCents) is the one that counts.
+  const nightsCount = kind === "night" && range.from && range.to ? Math.max(1, Math.round((Date.parse(range.to) - Date.parse(range.from)) / 86_400_000)) : 1;
+  const chosenExtras = priceSelection(extras, extraSel, { persons: guests, nights: nightsCount });
+  const extrasTotal = chosenExtras.reduce((s, e) => s + e.totalCents, 0);
 
   let price: SummaryPrice = null;
   if (kind === "night" && nightQuote) {
@@ -206,10 +211,9 @@ export function BookingTunnel(props: {
   } else if (kind !== "night" && slotQuote && formule && slot) {
     price = { lines: [{ label: `${formule.name} · ${slot.label}`, cents: slotQuote.totalCents }], totalCents: slotQuote.totalCents, currency: slotQuote.currency };
   }
-  if (price && payment && payment.totalCents !== price.totalCents) {
-    // BedLink re-quoted while holding (quote older than 5 minutes): show its price.
-    price = { lines: [{ label: "Tarif mis à jour", cents: payment.totalCents }], totalCents: payment.totalCents, currency: payment.currency };
-  }
+  // What the guest pays now: stay + extras, or BedLink's held amount once known
+  // (it re-quotes with the extras, and again if the quote is older than 5 minutes).
+  const toPayCents = payment ? payment.totalCents : price ? price.totalCents + extrasTotal : null;
 
   const summary = (final = false) => (
     <BookingSummary
@@ -223,6 +227,7 @@ export function BookingTunnel(props: {
       children={children}
       price={price}
       extras={chosenExtras}
+      heldTotalCents={payment ? payment.totalCents : null}
       justAdded={justAdded}
       final={final}
     />
@@ -291,7 +296,7 @@ export function BookingTunnel(props: {
     const base = {
       listingId: listing.listingId,
       guest,
-      extras: chosenExtras.map((e) => ({ id: e.id, name: e.name, quantity: e.quantity, unitPriceCents: e.unitPriceCents })),
+      extras: chosenExtras.map((e) => ({ id: e.id, quantity: e.quantity })),
     };
     let r: ActionResult<PaymentStart>;
     if (kind === "night") {
@@ -307,7 +312,7 @@ export function BookingTunnel(props: {
       setError(messageOf(r));
       return;
     }
-    if (price && r.data.totalCents !== price.totalCents) {
+    if (toPayCents !== null && r.data.totalCents !== toPayCents) {
       setNotice(`Le tarif a été recalculé : ${formatMoney(r.data.totalCents, r.data.currency)}.`);
     }
     if (r.data.mode === "confirmed") {
@@ -465,12 +470,11 @@ export function BookingTunnel(props: {
       <>
         <p className="bt-kicker">Facultatif</p>
         <h2 className="bt-h2">Pour rendre le séjour inoubliable</h2>
-        <p className="bt-lead">Touchez un extra pour l’ajouter : il apparaît aussitôt dans votre récapitulatif. Les extras se règlent sur place.</p>
+        <p className="bt-lead">Touchez un extra pour l’ajouter : il apparaît aussitôt dans votre récapitulatif et se paie avec la réservation.</p>
         <div className="bt-sec">
           <ExtrasGrid
             extras={extras}
             value={extraSel}
-            guests={guests}
             currency={listing.currency}
             onChange={(v) => {
               const added = Object.keys(v).find((k) => (v[k] ?? 0) > 0 && !(extraSel[k] ?? 0));
@@ -499,8 +503,8 @@ export function BookingTunnel(props: {
         <p className="bt-kicker">Paiement</p>
         <h2 className="bt-h2">Paiement sécurisé</h2>
         <p className="bt-lead">
-          Vous payez {price ? formatMoney(price.totalCents, price.currency) : ""} maintenant, directement à {listing.hostFirstName ?? "votre hôte"}.
-          {chosenExtras.length ? " Les extras se règlent sur place." : ""}
+          Vous payez {price && toPayCents !== null ? formatMoney(toPayCents, price.currency) : ""} maintenant, directement à {listing.hostFirstName ?? "votre hôte"}
+          {chosenExtras.length ? ", extras compris." : "."}
         </p>
         <label className="bt-terms">
           <input type="checkbox" checked={terms} disabled={!!payment || busy} onChange={(e) => void acceptTermsAndPay(e.target.checked)} />
@@ -574,7 +578,7 @@ export function BookingTunnel(props: {
         </div>
       </div>
       <MobileBookingBar
-        total={price ? formatMoney(price.totalCents, price.currency) : null}
+        total={price && toPayCents !== null ? formatMoney(toPayCents, price.currency) : null}
         subtitle={kind === "night" ? nightsLabel : dayLabel}
         open={sheet}
         onToggle={() => setSheet((s) => !s)}
