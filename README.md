@@ -36,9 +36,7 @@ jour plus tard : `git -C ../bedlink-partner-kit pull` et refaites la copie.
 Vous pouvez commiter `.cursor/skills/bedlink-integration` dans votre projet :
 il ne contient aucun secret.
 
-Le dépôt est privé : votre compte GitHub doit y avoir accès, et git doit
-pouvoir s'authentifier sans vous poser de question (`gh auth login` puis
-`gh auth setup-git`, une fois pour toutes).
+Le dépôt est public : aucun compte GitHub n'est nécessaire pour l'installer.
 
 Ensuite, laissez-vous guider. La seule chose que la skill vous demandera de
 faire vous-même : **coller votre clé BedLink dans `.env.local`**. Ne la collez
